@@ -3,32 +3,9 @@ import { View, Text, Image, StyleSheet, ScrollView, ImageBackground } from 'reac
 
 const App = () => {
   return (
-    <ImageBackground
-      source={require('/workspaces/react-native/medical-inventory-ui/assets/images/background.png')} // Custom background image
-      style={styles.background}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.headerContainer}>
-          <Text style={styles.title2}>Medical Based</Text>
-          <Text style={styles.title}>Inventory System</Text>
-        </View>
-
-        <View style={styles.imageRow}>
-          <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/nasa_hunch.png')}
-            style={styles.image}
-          />
-          <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/logo.png')}
-            style={styles.image}
-          />
-          <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/wt.png')}
-            style={styles.image}
-          />
-        </View>
-      </ScrollView>
-    </ImageBackground>
+    <View>
+      <Text>App</Text>
+    </View>
   );
 };
 

@@ -1,13 +1,19 @@
-// app/store/index.ts
+// store/index.ts
 import { configureStore } from "@reduxjs/toolkit";
+import inventoryReducer from "./inventorySlice";
 import suppliesReducer from "./suppliesSlice";
+import crewReducer from "./crewSlice";
+import logsReducer from "./logsSlice";
 
-export const store = configureStore({
+const store = configureStore({
   reducer: {
-    counter: suppliesReducer,
+    inventory: inventoryReducer,
+    supplies: suppliesReducer,
+    crew: crewReducer,
+    logs: logsReducer,
   },
 });
 
-// Type exports for TypeScript
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>; // Export RootState
+
+export default store;

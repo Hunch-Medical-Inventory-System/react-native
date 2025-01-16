@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider as ReduxProvider } from 'react-redux';
-import { store } from './store';
+import store from './store';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import TabOneScreen from './(tabs)';
 import { useColorScheme } from '@/components/useColorScheme';
