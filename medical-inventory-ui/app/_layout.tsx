@@ -4,10 +4,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { Provider as PaperProvider } from 'react-native-paper';
+import { Provider as ReduxProvider } from 'react-redux';
+import { store } from './store';
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import test from './(tabs)/test';
 import TabOneScreen from './(tabs)';
-import TabTwoScreen from './(tabs)/two';
 import { useColorScheme } from '@/components/useColorScheme';
 import available from './(tabs)/tables/available';
 import personal from './(tabs)/tables/personal';
@@ -52,9 +52,11 @@ export default function RootLayout() {
   }
 
   return (
-    <PaperProvider>
-      <RootLayoutNav />
-    </PaperProvider>
+    <ReduxProvider store={store}>
+      <PaperProvider>
+        <RootLayoutNav />
+      </PaperProvider>
+    </ReduxProvider>
   );
 }
 
