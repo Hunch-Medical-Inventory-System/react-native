@@ -1,5 +1,4 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -7,8 +6,14 @@ import 'react-native-reanimated';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import test from './(tabs)/test';
+import TabOneScreen from './(tabs)';
 import TabTwoScreen from './(tabs)/two';
 import { useColorScheme } from '@/components/useColorScheme';
+import available from './(tabs)/tables/available';
+import personal from './(tabs)/tables/personal';
+import expired from './(tabs)/tables/expired';
+import supplies from './(tabs)/tables/supplies';
+import logs from './(tabs)/tables/logs';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -65,8 +70,12 @@ function RootLayoutNav() {
         headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
       }}
     >
-      <Drawer.Screen name="Home" component={test} />
-      <Drawer.Screen name="Profile" component={TabTwoScreen} />
+      <Drawer.Screen name="Home" component={TabOneScreen} />
+      <Drawer.Screen name="Profile" component={personal} />
+      <Drawer.Screen name="Available" component={available} />
+      <Drawer.Screen name="Expired" component={expired} />
+      <Drawer.Screen name="Supplies" component={supplies} />
+      <Drawer.Screen name="Logs" component={logs} />
     </Drawer.Navigator>
   );
 }
