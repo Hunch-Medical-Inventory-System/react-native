@@ -1,0 +1,42 @@
+.
+|-- app
+|   |-- (tabs)
+|   |   |-- _layout.tsx
+|   |   |-- index.tsx
+|   |   |-- tables
+|   |   |   `-- available.tsx
+|   |   |-- test.tsx
+|   |   `-- two.tsx
+|   |-- +html.tsx
+|   |-- +not-found.tsx
+|   |-- _layout.tsx
+|   `-- modal.tsx
+|-- app.json
+|-- assets
+|   |-- fonts
+|   |   `-- SpaceMono-Regular.ttf
+|   `-- images
+|       |-- adaptive-icon.png
+|       |-- favicon.png
+|       |-- icon.png
+|       `-- splash-icon.png
+|-- components
+|   |-- EditScreenInfo.tsx
+|   |-- ExternalLink.tsx
+|   |-- StyledText.tsx
+|   |-- Themed.tsx
+|   |-- __tests__
+|   |   `-- StyledText-test.js
+|   |-- useClientOnlyValue.ts
+|   |-- useClientOnlyValue.web.ts
+|   |-- useColorScheme.ts
+|   `-- useColorScheme.web.ts
+|-- constants
+|   `-- Colors.ts
+|-- expo-env.d.ts
+|-- package-lock.json
+|-- package.json
+|-- tree.txt
+`-- tsconfig.json
+
+10 directories, 30 files
