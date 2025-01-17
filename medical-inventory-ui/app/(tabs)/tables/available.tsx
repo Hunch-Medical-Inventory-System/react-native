@@ -1,34 +1,33 @@
-// app/tabs/tables/available.tsx
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { retrieveInventory } from '../../store/inventorySlice';
-import { RootState } from '../../store';
+import React from 'react'
+import { View } from 'react-native'
+import { Button, Text } from 'react-native-paper'
+import { useSelector, useDispatch } from 'react-redux'
+import type { RootState } from '@/app/store'
+import { decrement, increment } from '@/app/store/counterSlice'
 
-const AvailableTable = () => {
-  const dispatch = useDispatch();
-  const { currentInventory, inventoryLoading } = useSelector(
-    (state: RootState) => state.inventory
-  );
-
-  useEffect(() => {
-    // Dispatch the async action
-    dispatch(retrieveInventory({ itemsPerPage: 10, page: 1, keywords: '' }));
-  }, [dispatch]);
-
-  if (inventoryLoading) {
-    return <div>Loading...</div>;
-  }
+const Available = () => {
+  const count = useSelector((state: RootState) => state.counter.value)
+  const dispatch = useDispatch()
 
   return (
-    <div>
-      <h1>Available Inventory</h1>
-      <ul>
-        {currentInventory.data.map((item, idx) => (
-          <li key={idx}>{item.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
+    <View>
+      <Button
+        aria-label="Increment value"
+        mode="contained"
+        onPress={() => dispatch(increment())}
+      >
+        Increment
+      </Button>
+      <Text>{count}</Text>
+      <Button
+        aria-label="Decrement value"
+        mode="contained"
+        onPress={() => dispatch(decrement())}
+      >
+        Decrement
+      </Button>
+    </View>
+  )
+}
 
-export default AvailableTable;
+export default Available
