@@ -1,5 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
+import type {
+  DataFetchOptions,
+  TableDataMapping,
+  EntityState,
+  InventoryData,
+} from "@/app/utils/types";
+
 // Use Expo constants to fetch the environment variables
 const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
 const SUPABASE_ANON_KEY =
@@ -12,7 +19,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export const readDataFromTable = async (
   table: string,
-  options = { itemsPerPage: 100, page: 1, keywords: "" }
+  options: DataFetchOptions
 ) => {
   let data = [];
 
@@ -38,7 +45,7 @@ export const readDataFromTable = async (
 
 export const readDeletableDataFromTable = async (
   table: string,
-  options = { itemsPerPage: 100, page: 1, keywords: "" }
+  options: DataFetchOptions
 ) => {
   let currentData = [];
   let deletedData = [];
@@ -90,13 +97,13 @@ export const readDeletableDataFromTable = async (
  * @param {string} options.keywords Keywords to search for
  * @returns {Promise<object>} An object with the following properties: `currentData`, `deletedData`, `expiredData`
  */
-export const readExpirableDataFromTable = async (
+export const readExpirableDataFromTable = async <T extends keyof TableDataMapping> (
   table: string,
-  options = { itemsPerPage: 100, page: 1, keywords: "" }
+  options: DataFetchOptions
 ) => {
-  let currentData = [];
-  let deletedData = [];
-  let expiredData = [];
+  let currentData: T;
+  let deletedData: T;
+  let expiredData: T;
 
   const nowUtc = new Date().toISOString();
 
