@@ -3,9 +3,32 @@ import { View, Text, Image, StyleSheet, ScrollView, ImageBackground } from 'reac
 
 const App = () => {
   return (
-    <View>
-      <Text>App</Text>
-    </View>
+    <ImageBackground
+      source={require('/workspaces/react-native/medical-inventory-ui/assets/images/background.png')}
+      style={styles.background}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.title2}>Medical Based</Text>
+          <Text style={styles.title}>Inventory System</Text>
+        </View>
+
+        <View style={styles.imageRow}>
+          <Image
+            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/nasa_hunch.png')}
+            style={styles.image}
+          />
+          <Image
+            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/logo.png')}
+            style={styles.image}
+          />
+          <Image
+            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/wt.png')}
+            style={styles.image}
+          />
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
@@ -27,7 +50,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   title2: {
-    fontFamily: 'monospace',
+    fontFamily: 'Anton',
     fontSize: 80,
     fontWeight: '400',
     color: '#ffffff',
@@ -37,7 +60,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   title: {
-    fontFamily: 'Audiowide-Regular', // Ensure this font is loaded
+    fontFamily: 'Anton-Regular', 
     fontSize: 140,
     fontWeight: '700',
     color: '#ffffff',
