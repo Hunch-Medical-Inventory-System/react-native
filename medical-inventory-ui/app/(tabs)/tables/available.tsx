@@ -1,16 +1,23 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import { useSelector, useDispatch } from 'react-redux'
-import type { RootState } from '@/app/store'
 import { retrieveInventory } from '@/app/store/tables/inventorySlice'
+import type { RootState, AppDispatch } from '@/app/store'
 
 
 const Available = () => {
   
-  const dispatch = useDispatch()
-  const data = useSelector((state: RootState) => state.counter.value)
-  console.log(data)
+  const dispatch = useDispatch<AppDispatch>()
+  const data = useSelector((state: RootState) => state.inventory)
+  
+
+  useEffect(() => {
+    dispatch(retrieveInventory({ itemsPerPage: 10, page: 1, keywords: "" }))
+  }, [])
+
+  console.log("test", data)
+
   return (
     <View>
       {/* <Button
@@ -21,6 +28,7 @@ const Available = () => {
         Refresh
       </Button> */}
       {/* <Text>{count}</Text> */}
+      <Text>Available</Text>
     </View>
   )
 }

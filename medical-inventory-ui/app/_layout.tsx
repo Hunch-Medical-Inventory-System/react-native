@@ -9,11 +9,11 @@ import { store } from './store';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import TabOneScreen from './(tabs)';
 import { useColorScheme } from '@/components/useColorScheme';
-import available from './(tabs)/tables/available';
-import personal from './(tabs)/tables/personal';
-import expired from './(tabs)/tables/expired';
-import supplies from './(tabs)/tables/supplies';
-import logs from './(tabs)/tables/logs';
+import Available from './(tabs)/tables/available';
+import Personal from './(tabs)/tables/personal';
+import Expired from './(tabs)/tables/expired';
+import Supplies from './(tabs)/tables/supplies';
+import Logs from './(tabs)/tables/logs';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -73,11 +73,11 @@ function RootLayoutNav() {
       }}
     >
       <Drawer.Screen name="Home" component={TabOneScreen} />
-      <Drawer.Screen name="Profile" component={personal} />
-      <Drawer.Screen name="Available" component={available} />
-      <Drawer.Screen name="Expired" component={expired} />
-      <Drawer.Screen name="Supplies" component={supplies} />
-      <Drawer.Screen name="Logs" component={logs} />
+      <Drawer.Screen name="Profile" component={Personal} />
+      <Drawer.Screen name="Available" component={Available} />
+      <Drawer.Screen name="Expired" component={Expired} />
+      <Drawer.Screen name="Supplies" component={Supplies} />
+      <Drawer.Screen name="Logs" component={Logs} />
     </Drawer.Navigator>
   );
 }

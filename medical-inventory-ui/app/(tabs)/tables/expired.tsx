@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const expired = () => {
+const Expired = () => {
   return (
     <View>
       <Text>expired</Text>
@@ -9,4 +9,4 @@ const expired = () => {
   )
 }
 
-export default expired
+export default Expired

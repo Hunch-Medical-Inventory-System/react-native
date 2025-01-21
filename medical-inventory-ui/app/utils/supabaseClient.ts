@@ -70,15 +70,14 @@ export const readInventoryDataFromTable = async (
       count: expiredResponse.count || 0,
     }
 
-  } catch (error) {
-    data.error = error;
+  } catch (error: any) {
+    data.error = error || "An error occurred";
     console.error(error);
   
   } finally {
     data.loading = false;
+    return { data };
   }
-
-  return { data };
 };
 
 

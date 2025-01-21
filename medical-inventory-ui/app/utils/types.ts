@@ -12,7 +12,7 @@ export type TableDataMapping = {
 
 export type EntityState<T> = {
   loading: boolean;
-  error: any;
+  error: string | null;
   current: { data: T[]; count: number };
   deleted?: { data: T[]; count: number };
   expired?: { data: T[]; count: number };

@@ -43,3 +43,4 @@ const inventorySlice = createSlice({
   },
 });
 
+export default inventorySlice.reducer;
