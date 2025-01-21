@@ -3,29 +3,24 @@ import { View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from '@/app/store'
-import { decrement, increment } from '@/app/store/counterSlice'
+import { retrieveInventory } from '@/app/store/tables/inventorySlice'
+
 
 const Available = () => {
-  const count = useSelector((state: RootState) => state.counter.value)
+  
   const dispatch = useDispatch()
-
+  const data = useSelector((state: RootState) => state.counter.value)
+  console.log(data)
   return (
     <View>
-      <Button
+      {/* <Button
         aria-label="Increment value"
         mode="contained"
-        onPress={() => dispatch(increment())}
+        onPress={() => dispatch(retrieveInventory)}
       >
-        Increment
-      </Button>
-      <Text>{count}</Text>
-      <Button
-        aria-label="Decrement value"
-        mode="contained"
-        onPress={() => dispatch(decrement())}
-      >
-        Decrement
-      </Button>
+        Refresh
+      </Button> */}
+      {/* <Text>{count}</Text> */}
     </View>
   )
 }
