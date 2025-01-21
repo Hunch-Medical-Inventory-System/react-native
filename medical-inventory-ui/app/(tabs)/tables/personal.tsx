@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, Text } from 'react-native';
 import { DataTable, TextInput, ActivityIndicator, Title, Button } from 'react-native-paper';
-import { supabase } from '/workspaces/react-native/medical-inventory-ui/app/utils/supabaseClient';
+import { supabase } from '@/app/utils/supabaseClient';
 import { ImageBackground } from 'react-native';
 
 interface InventoryItem {
@@ -19,7 +19,7 @@ const InventoryProfile = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [background, setBackground] = useState(require('/workspaces/react-native/medical-inventory-ui/assets/images/background.png'));
+  const [background, setBackground] = useState(require('@/assets/images/background.png'));
 
   const getExpiryClass = (expDate: string) => {
     const today = new Date();

@@ -4,7 +4,7 @@ import { View, Text, Image, StyleSheet, ScrollView, ImageBackground } from 'reac
 const App = () => {
   return (
     <ImageBackground
-      source={require('/workspaces/react-native/medical-inventory-ui/assets/images/background.png')}
+      source={require('@/assets/images/background.png')}
       style={styles.background}
     >
       <ScrollView contentContainerStyle={styles.container}>
@@ -15,15 +15,15 @@ const App = () => {
 
         <View style={styles.imageRow}>
           <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/nasa_hunch.png')}
+            source={require('@/assets/images/nasa_hunch.png')}
             style={styles.image}
           />
           <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/logo.png')}
+            source={require('@/assets/images/logo.png')}
             style={styles.image}
           />
           <Image
-            source={require('/workspaces/react-native/medical-inventory-ui/assets/images/wt.png')}
+            source={require('@/assets/images/wt.png')}
             style={styles.image}
           />
         </View>
