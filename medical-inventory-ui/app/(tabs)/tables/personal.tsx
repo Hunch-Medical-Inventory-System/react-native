@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList, Text } from 'react-native';
-import { DataTable, TextInput, ActivityIndicator, Title, Button } from 'react-native-paper';
+import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 'react-native-paper';
 import { supabase } from '@/app/utils/supabaseClient';
 import { ImageBackground } from 'react-native';
 
@@ -15,120 +15,122 @@ interface InventoryItem {
 
 const InventoryProfile = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [serverItems, setServerItems] = useState<InventoryItem[]>([]); 
-  const [totalItems, setTotalItems] = useState(0);
+  const [serverItems, setServerItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [background, setBackground] = useState(require('@/assets/images/background.png'));
+  const background = require('@/assets/images/background.png');
 
   const getExpiryClass = (expDate: string) => {
     const today = new Date();
     const expiry = new Date(expDate);
-    const diffTime = expiry.getTime() - today.getTime(); 
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffDays <= 0) {
-      return styles.expired;
-    } else if (diffDays <= 7) {
-      return styles.aboutToExpire;
-    } else if (diffDays <= 30) {
-      return styles.expiringSoon;
-    }
-    return null;
+    if (diffDays <= 0) return { backgroundColor: '#b21414' }; // Expired
+    if (diffDays <= 7) return { backgroundColor: '#fff4cc' }; // About to expire
+    if (diffDays <= 30) return { backgroundColor: '#e6f7cc' }; // Expiring soon
+    return { backgroundColor: '#ffffff' }; // Normal
+  };
+
+  const getTextColor = (backgroundColor: string): string => {
+    const hex = backgroundColor.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5 ? '#000000' : '#ffffff';
   };
 
   const loadItems = async () => {
     setLoading(true);
     try {
-      const { data, error, count } = await supabase
-        .from('inventory')
-        .select('*', { count: 'exact' }) 
-        .range(0, itemsPerPage - 1);
-  
+      const { data, error } = await supabase.from('inventory').select('*').range(0, itemsPerPage - 1);
+
       if (error) {
         console.error('Error fetching data:', error);
         setServerItems([]);
-        setTotalItems(0);
       } else {
-        console.log('Fetched data:', data); 
         setServerItems(data as InventoryItem[]);
-        setTotalItems(count || 0);
       }
     } catch (err) {
       console.error('Unexpected error:', err);
     }
     setLoading(false);
-  };  
+  };
 
   useEffect(() => {
     loadItems();
   }, [search, itemsPerPage]);
 
   const renderRow = ({ item }: { item: InventoryItem }) => {
-    const expiryStyle = getExpiryClass(item.expiry_date); // Get the background style
-    const isExpiring = expiryStyle === styles.expired || expiryStyle === styles.aboutToExpire || expiryStyle === styles.expiringSoon; // Check if it matches expiring styles
-  
-    return (
-      <DataTable.Row style={[styles.dataTableRow, expiryStyle]}>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {item.id}
-        </DataTable.Cell>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {new Date(item.created_at).toLocaleDateString()}
-        </DataTable.Cell>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {item.is_deleted ? 'Yes' : 'No'}
-        </DataTable.Cell>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {item.supply_id}
-        </DataTable.Cell>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {new Date(item.expiry_date).toLocaleDateString()}
-        </DataTable.Cell>
-        <DataTable.Cell textStyle={isExpiring ? styles.rowTextWhite : styles.dataTableRowText}>
-          {item.crew_member}
-        </DataTable.Cell>
-      </DataTable.Row>
-    );
-  };
-  
+    const expiryStyle = getExpiryClass(item.expiry_date);
+    const textColor = getTextColor(expiryStyle.backgroundColor);
 
-  const changeBackground = (newBackground: string) => {
-    setBackground({ uri: newBackground });
+    return (
+      <Card style={[styles.card, expiryStyle]}>
+        <Card.Content style={styles.cardContent}>
+          <Title
+            style={[styles.cardTitle, { color: textColor }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}>
+            Supply ID: {item.supply_id}
+          </Title>
+          <Paragraph
+            style={[styles.cardText, { color: textColor }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}>
+            Added: {new Date(item.created_at).toLocaleDateString()}
+          </Paragraph>
+          <Paragraph
+            style={[styles.cardText, { color: textColor }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}>
+            Expiry: {new Date(item.expiry_date).toLocaleDateString()}
+          </Paragraph>
+          <Paragraph
+            style={[styles.cardText, { color: textColor }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}>
+            Crew: {item.crew_member}
+          </Paragraph>
+          <Paragraph
+            style={[styles.cardText, { color: textColor }]}
+            adjustsFontSizeToFit
+            numberOfLines={1}>
+            Status: {item.is_deleted ? 'Deleted' : 'Active'}
+          </Paragraph>
+        </Card.Content>
+      </Card>
+    );
   };
 
   return (
-    <ImageBackground source={background} style={styles.background} resizeMode="cover">
-      <View style={styles.container}>
-        <Title style={styles.title}>Inventory Profile</Title>
+    <ImageBackground source={background} style={styles.background} imageStyle={styles.background}>
+      <Appbar.Header style={styles.appBar}>
+        <Appbar.Content title="Inventory Profile" titleStyle={styles.appBarTitle} />
+        <Appbar.Action icon="refresh" onPress={loadItems} />
+      </Appbar.Header>
 
+      <View style={styles.container}>
         <TextInput
           mode="outlined"
           label="Search inventory"
           value={search}
           onChangeText={setSearch}
           style={styles.searchInput}
+          placeholder="Search by supply ID or crew member"
         />
 
         {loading ? (
           <ActivityIndicator animating={true} size="large" style={styles.loader} />
         ) : (
-          <DataTable>
-            <DataTable.Header>
-              <DataTable.Title>ID</DataTable.Title>
-              <DataTable.Title>Created At</DataTable.Title>
-              <DataTable.Title>Is Deleted</DataTable.Title>
-              <DataTable.Title>Supply ID</DataTable.Title>
-              <DataTable.Title>Expiry Date</DataTable.Title>
-              <DataTable.Title>Crew Member</DataTable.Title>
-            </DataTable.Header>
-
-            <FlatList
-              data={serverItems}
-              renderItem={renderRow}
-              keyExtractor={(item) => item.id.toString()}
-            />
-          </DataTable>
+          <FlatList
+            data={serverItems}
+            renderItem={renderRow}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2} 
+            columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8 }}
+            contentContainerStyle={styles.listContainer}
+          />
         )}
       </View>
     </ImageBackground>
@@ -136,80 +138,62 @@ const InventoryProfile = () => {
 };
 
 const styles = StyleSheet.create({
+  appBar: {
+    backgroundColor: '#007bff',
+  },
+  appBarTitle: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.0)', 
+    padding: 8,
   },
   background: {
     flex: 1,
     resizeMode: 'cover',
-    width: '100%',
-    height: '100%',
   },
-  title: {
-    color: '#ffffff', 
-    textAlign: 'center',
-    marginBottom: 16,
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  rowTextWhite: {
-    color: '#FFFFFF', // White text
-    fontWeight: 'bold', // Optional: Make it bold for better visibility
+  backgroundImage: {
+    opacity: 1,
   },
   searchInput: {
-    marginBottom: 16,
-    backgroundColor: '#1F1F1F', 
+    marginBottom: 8,
+    backgroundColor: '#ffffff',
     borderRadius: 8,
-    padding: 8,
-    color: '#FFFFFF', 
+    fontSize: 14,
   },
   loader: {
     marginTop: 20,
-    color: '#ffffff',
   },
-  expired: {
-    backgroundColor: '#f40505', 
-    borderRadius: 8,
-    padding: 8,
+  listContainer: {
+    paddingBottom: 8,
   },
-  aboutToExpire: {
-    backgroundColor: '#f48405', 
-    borderRadius: 8,
-    padding: 8,
+  card: {
+    width: '48%',
+    marginBottom: 8,
+    borderRadius: 6,
+    elevation: 4, // For Android shadow
+    shadowColor: '#000', // Shadow for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    padding: 6,
+    backgroundColor: '#ffffff',
   },
-  expiringSoon: {
-    backgroundColor: '#f0c217', 
-    borderRadius: 8,
-    padding: 8,
+  cardContent: {
+    padding: 0,
+    flexShrink: 1,
   },
-  dataTable: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 8,
-    shadowColor: '#000000', // Subtle shadow for elevation
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    
-  },
-  dataTableHeader: {
-    backgroundColor: '#F2F2F2',
-  },
-  dataTableHeaderText: {
+  cardTitle: {
     fontWeight: 'bold',
-    color: '#333333', 
+    fontSize: 13,
+    lineHeight: 16,
   },
-  dataTableRow: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0', 
-    backgroundColor: '#FFFFFF', 
-  },
-  dataTableRowText: {
-    color: '#333333', 
+  cardText: {
+    fontSize: 11,
+    lineHeight: 14,
   },
 });
+
 
 export default InventoryProfile;
