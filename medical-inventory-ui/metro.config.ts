@@ -1,6 +1,6 @@
 module.exports = {
   server: {
-    port: 8081,
+    port: 8090,
     watch: { usePolling: true },
   },
 };

@@ -36,15 +36,16 @@ export const readInventoryDataFromTable = async (
         .from("inventory")
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
-        .eq("is_deleted", false)
-        .range(startRange, endRange);
+        .range(startRange, endRange)
+        .is("crew_member", null)
+        .gte("expiry_date", new Date().toISOString());
 
     let deletedResponse: PostgrestSingleResponse<InventoryData[]> =
       await supabase
         .from("inventory")
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
-        .eq("is_deleted", true)
+        .not("crew_member", "is", null)
         .range(startRange, endRange);
 
     let expiredResponse: PostgrestSingleResponse<InventoryData[]> =
@@ -52,8 +53,9 @@ export const readInventoryDataFromTable = async (
         .from("inventory")
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
-        .eq("is_expired", true)
-        .range(startRange, endRange);
+        .range(startRange, endRange)
+        .is("crew_member", null)
+        .lt("expiry_date", new Date().toISOString())
 
     data.current = {
       data: currentResponse.data || [],
@@ -78,7 +80,76 @@ export const readInventoryDataFromTable = async (
     data.loading = false;
     return { data };
   }
-};
+}
+
+export const readSuppliesDataFromTable = async (
+  options: DataFetchOptions
+) => {
+
+  const startRange = options.itemsPerPage * (options.page - 1);
+  const endRange = options.itemsPerPage * options.page - 1;
+
+  const date = new Date().toISOString()
+  
+  let data: EntityState<InventoryData> = {
+    loading: false,
+    error: null,
+    current: { data: [], count: 0 },
+    deleted: { data: [], count: 0 },
+    expired: { data: [], count: 0 },
+  }
+
+  try {
+    let currentResponse: PostgrestSingleResponse<InventoryData[]> =
+      await supabase
+        .from("inventory")
+        .select("*", { count: "exact" })
+        .order("id", { ascending: true })
+        .range(startRange, endRange)
+        .is("crew_member", null)
+        .gte("expiry_date", date);
+
+    let deletedResponse: PostgrestSingleResponse<InventoryData[]> =
+      await supabase
+        .from("inventory")
+        .select("*", { count: "exact" })
+        .order("id", { ascending: true })
+        .not("crew_member", "is", null)
+        .range(startRange, endRange);
+
+    let expiredResponse: PostgrestSingleResponse<InventoryData[]> =
+      await supabase
+        .from("inventory")
+        .select("*", { count: "exact" })
+        .order("id", { ascending: true })
+        .range(startRange, endRange)
+        .is("crew_member", null)
+        .lt("expiry_date", date);
+
+    data.current = {
+      data: currentResponse.data || [],
+      count: currentResponse.count || 0,
+    }
+
+    data.deleted = {
+      data: deletedResponse.data || [],
+      count: deletedResponse.count || 0,
+    }
+
+    data.expired = {
+      data: expiredResponse.data || [],
+      count: expiredResponse.count || 0,
+    }
+
+  } catch (error: any) {
+    data.error = error || "An error occurred";
+    console.error(error);
+  
+  } finally {
+    data.loading = false;
+    return { data };
+  }
+}
 
 
 // export const readDataFromTable = async (
