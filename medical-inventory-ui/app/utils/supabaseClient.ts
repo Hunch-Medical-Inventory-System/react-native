@@ -133,7 +133,7 @@ export const readDeletableDataFromTable = async <T extends keyof DeletableTableM
    * @param {DataFetchOptions} options - The options for pagination.
    * @returns {Promise<EntityState<T>>} - A promise resolving to the retrieved data.
    */
-export const readDataFromTable = async <T extends keyof ExpirableTableMapping>(
+export const readDataFromTable = async <T extends keyof TableMapping>(
   table: T,
   options: DataFetchOptions
 ) => {
@@ -141,14 +141,14 @@ export const readDataFromTable = async <T extends keyof ExpirableTableMapping>(
   const startRange = options.itemsPerPage * (options.page - 1);
   const endRange = options.itemsPerPage * options.page - 1;
   
-  let data: EntityState<ExpirableTableMapping[T]> = {
+  let data: EntityState<TableMapping[T]> = {
     loading: false,
     error: null,
     current: { data: [], count: 0 },
   }
 
   try {
-    let currentResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
+    let currentResponse: PostgrestSingleResponse<TableMapping[T][]> =
       await supabase
         .from(table)
         .select("*", { count: "exact" })

@@ -7,7 +7,7 @@ import type { RootState, AppDispatch } from '@/app/store'
 import type { EntityState, InventoryData } from '@/app/utils/types'
 
 
-const Available = () => {
+const Expired = () => {
   
   const dispatch = useDispatch<AppDispatch>()
   const data: EntityState<InventoryData> = useSelector((state: RootState) => state.inventory)
@@ -61,4 +61,4 @@ const Available = () => {
   )
 }
 
-export default Available
+export default Expired

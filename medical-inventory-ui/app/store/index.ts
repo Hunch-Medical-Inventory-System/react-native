@@ -2,12 +2,16 @@ import { configureStore } from "@reduxjs/toolkit";
 import counterReducer from "./counterSlice";
 import inventoryReducer from "./tables/inventorySlice";
 import suppliesReducer from "./tables/suppliesSlice";
+import crewReducer from "./tables/crewSlice";
+import logsReducer from "./tables/logsSlice";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
     inventory: inventoryReducer,
     supplies: suppliesReducer,
+    crew: crewReducer,
+    logs: logsReducer,
   },
 });
 

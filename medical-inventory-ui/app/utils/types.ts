@@ -14,6 +14,7 @@ export type DeletableTableMapping  = {
 
 export type TableMapping = {
   crew: CrewData;
+  logs: LogsData;
 } & DeletableTableMapping;
 
 export type EntityState<T> = {
@@ -53,7 +54,7 @@ export type CrewData = {
   created_at: string;
 };
 
-export type logs = {
+export type LogsData = {
   id: number;
   created_at: string;
   crew_member_id: number;

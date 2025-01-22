@@ -1,36 +1,44 @@
-// // redux/logsSlice.js
-// import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-// import { readDataFromTable } from "../../utils/supabaseClient";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { readDataFromTable } from "@/app/utils/supabaseClient";
+import type {
+  DataFetchOptions,
+  EntityState,
+  LogsData,
+} from "@/app/utils/types";
 
-// // Async action for retrieving logs
-// export const retrieveLogs = createAsyncThunk(
-//   "logs/retrieveLogs",
-//   async (options) => {
-//     const data = await readDataFromTable("logs", options);
-//     return data;
-//   }
-// );
+// Async action for retrieving inventory data
+export const retrieveCrew = createAsyncThunk(
+  "inventory/retrieveInventory",
+  async (options: DataFetchOptions) => {
+    const data = await readDataFromTable("logs", options);
+    return data;
+  }
+);
 
-// const logsSlice = createSlice({
-//   name: "logs",
-//   initialState: {
-//     currentLogs: { data: [{}], count: 0 },
-//     logsLoading: true,
-//   },
-//   reducers: {},
-//   extraReducers: (builder) => {
-//     builder
-//       .addCase(retrieveLogs.pending, (state) => {
-//         state.logsLoading = true;
-//       })
-//       .addCase(retrieveLogs.fulfilled, (state, action) => {
-//         state.currentLogs = action.payload;
-//         state.logsLoading = false;
-//       })
-//       .addCase(retrieveLogs.rejected, (state) => {
-//         state.logsLoading = false;
-//       });
-//   },
-// });
+const initialState: EntityState<LogsData> = {
+  loading: true,
+  error: null,
+  current: { data: [], count: 0 },
+};
 
-// export default logsSlice.reducer;
+const crewSlice = createSlice({
+  name: "crew",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(retrieveCrew.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(retrieveCrew.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.error;
+        state.current = action.payload.current;
+      })
+      .addCase(retrieveCrew.rejected, (state) => {
+        state.loading = false;
+      });
+  },
+});
+
+export default crewSlice.reducer;
