@@ -2,9 +2,10 @@ import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 
 import type {
   DataFetchOptions,
-  TableDataMapping,
+  ExpirableTableMapping,
+  DeletableTableMapping,
+  TableMapping,
   EntityState,
-  InventoryData,
 } from "@/app/utils/types";
 
 // Use Expo constants to fetch the environment variables
@@ -15,47 +16,48 @@ const SUPABASE_ANON_KEY =
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 
-export const readInventoryDataFromTable = async (
+export const readExpirableDataFromTable = async <T extends keyof ExpirableTableMapping>(
+  table: T,
   options: DataFetchOptions
 ) => {
 
   const startRange = options.itemsPerPage * (options.page - 1);
   const endRange = options.itemsPerPage * options.page - 1;
   
-  let data: EntityState<InventoryData> = {
+  let data: EntityState<ExpirableTableMapping[T]> = {
     loading: false,
     error: null,
     current: { data: [], count: 0 },
     deleted: { data: [], count: 0 },
     expired: { data: [], count: 0 },
-  }
+  };
 
   try {
-    let currentResponse: PostgrestSingleResponse<InventoryData[]> =
+    let currentResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
       await supabase
-        .from("inventory")
+        .from(table)
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
         .range(startRange, endRange)
         .is("crew_member", null)
         .gte("expiry_date", new Date().toISOString());
 
-    let deletedResponse: PostgrestSingleResponse<InventoryData[]> =
+    let deletedResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
       await supabase
-        .from("inventory")
+        .from(table)
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
         .not("crew_member", "is", null)
         .range(startRange, endRange);
 
-    let expiredResponse: PostgrestSingleResponse<InventoryData[]> =
+    let expiredResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
       await supabase
-        .from("inventory")
+        .from(table)
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
         .range(startRange, endRange)
         .is("crew_member", null)
-        .lt("expiry_date", new Date().toISOString())
+        .lt("expiry_date", new Date().toISOString());
 
     data.current = {
       data: currentResponse.data || [],
@@ -78,67 +80,37 @@ export const readInventoryDataFromTable = async (
   
   } finally {
     data.loading = false;
-    return { data };
+    return data;
   }
 }
 
-export const readSuppliesDataFromTable = async (
+  
+export const readDeletableDataFromTable = async <T extends keyof DeletableTableMapping>(
+  table: T,
   options: DataFetchOptions
 ) => {
 
   const startRange = options.itemsPerPage * (options.page - 1);
   const endRange = options.itemsPerPage * options.page - 1;
-
-  const date = new Date().toISOString()
   
-  let data: EntityState<InventoryData> = {
+  let data: EntityState<DeletableTableMapping[T]> = {
     loading: false,
     error: null,
     current: { data: [], count: 0 },
-    deleted: { data: [], count: 0 },
-    expired: { data: [], count: 0 },
   }
 
   try {
-    let currentResponse: PostgrestSingleResponse<InventoryData[]> =
+    let currentResponse: PostgrestSingleResponse<DeletableTableMapping[T][]> =
       await supabase
-        .from("inventory")
+        .from(table)
         .select("*", { count: "exact" })
         .order("id", { ascending: true })
         .range(startRange, endRange)
-        .is("crew_member", null)
-        .gte("expiry_date", date);
 
-    let deletedResponse: PostgrestSingleResponse<InventoryData[]> =
-      await supabase
-        .from("inventory")
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .not("crew_member", "is", null)
-        .range(startRange, endRange);
-
-    let expiredResponse: PostgrestSingleResponse<InventoryData[]> =
-      await supabase
-        .from("inventory")
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .range(startRange, endRange)
-        .is("crew_member", null)
-        .lt("expiry_date", date);
-
+    
     data.current = {
       data: currentResponse.data || [],
       count: currentResponse.count || 0,
-    }
-
-    data.deleted = {
-      data: deletedResponse.data || [],
-      count: deletedResponse.count || 0,
-    }
-
-    data.expired = {
-      data: expiredResponse.data || [],
-      count: expiredResponse.count || 0,
     }
 
   } catch (error: any) {
@@ -147,7 +119,54 @@ export const readSuppliesDataFromTable = async (
   
   } finally {
     data.loading = false;
-    return { data };
+    return data;
+  }
+}
+
+  /**
+   * Retrieves data from a table in the Supabase database.
+   * The data is paginated, with `page` and `itemsPerPage` options determining the range.
+   * The response object contains:
+   * - `current`: Items in the current page.
+   * - `loading`: Indicates if data fetching is in progress.
+   * - `error`: Any error that occurred during data fetching.
+   * @param {DataFetchOptions} options - The options for pagination.
+   * @returns {Promise<EntityState<T>>} - A promise resolving to the retrieved data.
+   */
+export const readDataFromTable = async <T extends keyof ExpirableTableMapping>(
+  table: T,
+  options: DataFetchOptions
+) => {
+
+  const startRange = options.itemsPerPage * (options.page - 1);
+  const endRange = options.itemsPerPage * options.page - 1;
+  
+  let data: EntityState<ExpirableTableMapping[T]> = {
+    loading: false,
+    error: null,
+    current: { data: [], count: 0 },
+  }
+
+  try {
+    let currentResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
+      await supabase
+        .from(table)
+        .select("*", { count: "exact" })
+        .order("id", { ascending: true })
+        .range(startRange, endRange);
+    
+    data.current = {
+      data: currentResponse.data || [],
+      count: currentResponse.count || 0,
+    }
+
+  } catch (error: any) {
+    data.error = error || "An error occurred";
+    console.error(error);
+  
+  } finally {
+    data.loading = false;
+    return data;
   }
 }
 

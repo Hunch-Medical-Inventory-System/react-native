@@ -4,11 +4,17 @@ export type DataFetchOptions = {
   keywords: string;
 };
 
-export type TableDataMapping = {
+export type ExpirableTableMapping = {
   inventory: InventoryData;
-  supply: SupplyData;
+}
+
+export type DeletableTableMapping  = {
+  supplies: SuppliesData;
+} & ExpirableTableMapping;
+
+export type TableMapping = {
   crew: CrewData;
-};
+} & DeletableTableMapping;
 
 export type EntityState<T> = {
   loading: boolean;
@@ -20,14 +26,14 @@ export type EntityState<T> = {
 
 export type InventoryData = {
   id: number;
-  supply_id: number;
   card_id: number;
-  crew_id: number;
+  supply_id: number;
+  crew_member: number;
   quantity: number;
   created_at: string;
-  expire_date: string;
+  expiry_date: string;
 };
-export type SupplyData = {
+export type SuppliesData = {
   id: number;
   type: string;
   item: string;

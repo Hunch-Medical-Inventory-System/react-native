@@ -1,38 +1,44 @@
-// // redux/suppliesSlice.js
-// import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-// import { readDeletableDataFromTable } from "../../utils/supabaseClient";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { readDeletableDataFromTable } from "@/app/utils/supabaseClient";
+import type {
+  DataFetchOptions,
+  EntityState,
+  SuppliesData,
+} from "@/app/utils/types";
 
-// // Async action for retrieving supplies
-// export const retrieveSupplies = createAsyncThunk(
-//   "supplies/retrieveSupplies",
-//   async (options) => {
-//     const data = await readDeletableDataFromTable("supplies", options);
-//     return data;
-//   }
-// );
+// Async action for retrieving inventory data
+export const retrieveSupplies = createAsyncThunk(
+  "inventory/retrieveInventory",
+  async (options: DataFetchOptions) => {
+    const data = await readDeletableDataFromTable("supplies", options);
+    return data;
+  }
+);
 
-// const suppliesSlice = createSlice({
-//   name: "supplies",
-//   initialState: {
-//     currentSupplies: { data: [{}], count: 0 },
-//     deletedSupplies: { data: [{}], count: 0 },
-//     suppliesLoading: true,
-//   },
-//   reducers: {},
-//   extraReducers: (builder) => {
-//     builder
-//       .addCase(retrieveSupplies.pending, (state) => {
-//         state.suppliesLoading = true;
-//       })
-//       .addCase(retrieveSupplies.fulfilled, (state, action) => {
-//         state.currentSupplies = action.payload.currentData;
-//         state.deletedSupplies = action.payload.deletedData;
-//         state.suppliesLoading = false;
-//       })
-//       .addCase(retrieveSupplies.rejected, (state) => {
-//         state.suppliesLoading = false;
-//       });
-//   },
-// });
+const initialState: EntityState<SuppliesData> = {
+  loading: true,
+  error: null,
+  current: { data: [], count: 0 },
+};
 
-// export default suppliesSlice.reducer;
+const suppliesSlice = createSlice({
+  name: "supplies",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(retrieveSupplies.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(retrieveSupplies.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = action.payload.error;
+        state.current = action.payload.current;
+      })
+      .addCase(retrieveSupplies.rejected, (state) => {
+        state.loading = false;
+      });
+  },
+});
+
+export default suppliesSlice.reducer;

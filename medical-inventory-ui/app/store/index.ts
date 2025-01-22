@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import counterReducer from "./counterSlice";
 import inventoryReducer from "./tables/inventorySlice";
+import suppliesReducer from "./tables/suppliesSlice";
 
 export const store = configureStore({
   reducer: {
     counter: counterReducer,
-    inventory: inventoryReducer
+    inventory: inventoryReducer,
+    supplies: suppliesReducer,
   },
 });
 
