@@ -28,7 +28,7 @@ export type InventoryData = {
   id: number;
   card_id: number;
   supply_id: number;
-  crew_member: number;
+  crew_member_id: number;
   quantity: number;
   created_at: string;
   expiry_date: string;
@@ -51,4 +51,10 @@ export type CrewData = {
   first_name: string;
   last_name: string;
   created_at: string;
+};
+
+export type logs = {
+  id: number;
+  created_at: string;
+  crew_member_id: number;
 };
