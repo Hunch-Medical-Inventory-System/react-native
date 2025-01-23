@@ -14,6 +14,7 @@ import Personal from './(tabs)/tables/personal';
 import Expired from './(tabs)/tables/expired';
 import Supplies from './(tabs)/tables/supplies';
 import Logs from './(tabs)/tables/logs';
+import NfcReader from './(tabs)/NFCScanner';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -32,7 +33,7 @@ const Drawer = createDrawerNavigator();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require('@/assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
 
@@ -78,6 +79,7 @@ function RootLayoutNav() {
       <Drawer.Screen name="Expired" component={Expired} />
       <Drawer.Screen name="Supplies" component={Supplies} />
       <Drawer.Screen name="Logs" component={Logs} />
+      <Drawer.Screen name="NFC" component={NfcReader} />
     </Drawer.Navigator>
   );
 }

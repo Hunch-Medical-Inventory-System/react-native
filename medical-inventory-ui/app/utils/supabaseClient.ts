@@ -15,6 +15,8 @@ const SUPABASE_ANON_KEY =
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+export default supabase;
+
 
 export const readExpirableDataFromTable = async <T extends keyof ExpirableTableMapping>(
   table: T,

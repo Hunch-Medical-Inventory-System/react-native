@@ -59,3 +59,5 @@ export type LogsData = {
   created_at: string;
   crew_member_id: number;
 };
+
+export default TableMapping;
