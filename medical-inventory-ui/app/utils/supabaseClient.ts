@@ -1,6 +1,8 @@
-import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
-
+import Constants from "expo-constants";
+import { createClient } from "@supabase/supabase-js";
+import type { PostgrestSingleResponse } from "@supabase/supabase-js";
 import type {
+  ExtraConfig,
   DataFetchOptions,
   ExpirableTableMapping,
   DeletableTableMapping,
@@ -8,12 +10,10 @@ import type {
   EntityState,
 } from "@/app/utils/types";
 
-// Use Expo constants to fetch the environment variables
-const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvd2VnZm1raWluZHB0cG5zc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg0OTE0MzksImV4cCI6MjA0NDA2NzQzOX0._rrgcRNIZYDMqdQaqEWgrHNvFp4jGkk-dFF4ohxroq0";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const config = Constants.expoConfig?.extra as ExtraConfig;
+
+export const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
 export default supabase;
 

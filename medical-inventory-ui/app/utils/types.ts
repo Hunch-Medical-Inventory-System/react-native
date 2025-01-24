@@ -1,3 +1,8 @@
+export type ExtraConfig = {
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
+};
+
 export type DataFetchOptions = {
   itemsPerPage: number;
   page: number;
@@ -59,5 +64,3 @@ export type LogsData = {
   created_at: string;
   crew_member_id: number;
 };
-
-export default TableMapping;

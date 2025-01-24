@@ -1,0 +1,66 @@
+.
+├── app
+│   ├── +html.tsx
+│   ├── _layout.tsx
+│   ├── modal.tsx
+│   ├── +not-found.tsx
+│   ├── store
+│   │   ├── counterSlice.ts
+│   │   ├── hooks.ts
+│   │   ├── index.ts
+│   │   └── tables
+│   │       ├── crewSlice.ts
+│   │       ├── inventorySlice.ts
+│   │       ├── logsSlice.ts
+│   │       └── suppliesSlice.ts
+│   ├── (tabs)
+│   │   ├── index.tsx
+│   │   ├── _layout.tsx
+│   │   ├── NFCScanner.tsx
+│   │   ├── tables
+│   │   │   ├── available.tsx
+│   │   │   ├── expired.tsx
+│   │   │   ├── logs.tsx
+│   │   │   ├── personal.tsx
+│   │   │   └── supplies.tsx
+│   │   ├── test.tsx
+│   │   └── two.tsx
+│   ├── types
+│   └── utils
+│       ├── supabaseClient.ts
+│       └── types.ts
+├── app.json
+├── assets
+│   ├── fonts
+│   │   ├── Anton-Regular.ttf
+│   │   └── SpaceMono-Regular.ttf
+│   └── images
+│       ├── adaptive-icon.png
+│       ├── background.png
+│       ├── favicon.png
+│       ├── icon.png
+│       ├── logo.png
+│       ├── nasa_hunch.png
+│       ├── splash-icon.png
+│       └── wt.png
+├── components
+│   ├── EditScreenInfo.tsx
+│   ├── ExternalLink.tsx
+│   ├── StyledText.tsx
+│   ├── __tests__
+│   │   └── StyledText-test.js
+│   ├── Themed.tsx
+│   ├── useClientOnlyValue.ts
+│   ├── useClientOnlyValue.web.ts
+│   ├── useColorScheme.ts
+│   └── useColorScheme.web.ts
+├── constants
+│   └── Colors.ts
+├── expo-env.d.ts
+├── package.json
+├── package-lock.json
+├── tree
+├── tree.txt
+└── tsconfig.json
+
+14 directories, 50 files
