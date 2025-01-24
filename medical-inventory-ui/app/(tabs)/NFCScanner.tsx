@@ -21,7 +21,7 @@ const NFCScanner = () => {
   }, [])
 
   useEffect(() => {
-    NfcManager.setEventListener(NfcEvents.DiscoverTag, (tag) => {
+    NfcManager.setEventListener(NfcEvents.DiscoverTag, (_tag: any) => {
       console.log('tag found')
     })
 
