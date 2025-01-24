@@ -78,9 +78,9 @@ const styles = StyleSheet.create({
   },
   image: {
     width: 300, // Increased size
-    height: 300, // Increased size
-    marginHorizontal: 15, // Reduced spacing
-    resizeMode: 'contain', // Ensures the logo fits within the bounds
+    height: 300, 
+    marginHorizontal: 15, 
+    resizeMode: 'contain', 
   },
 });
 

@@ -1,5 +1,4 @@
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
-
 import type {
   DataFetchOptions,
   ExpirableTableMapping,
@@ -8,24 +7,52 @@ import type {
   EntityState,
 } from "@/app/utils/types";
 
-// Use Expo constants to fetch the environment variables
 const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvd2VnZm1raWluZHB0cG5zc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg0OTE0MzksImV4cCI6MjA0NDA2NzQzOX0._rrgcRNIZYDMqdQaqEWgrHNvFp4jGkk-dFF4ohxroq0";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const handleResponse = async <T>(
+  response: PostgrestSingleResponse<T[]>
+): Promise<{ data: T[]; count: number }> => {
+  if (response.error) {
+    console.error("Supabase Error:", response.error.message);
+    throw new Error(response.error.message);
+  }
+  return {
+    data: response.data || [],
+    count: response.count || 0,
+  };
+};
 
-export const readExpirableDataFromTable = async <T extends keyof ExpirableTableMapping>(
+const fetchTableData = async <T extends string>(
   table: T,
-  options: DataFetchOptions
-) => {
-
+  options: DataFetchOptions,
+  filters: (query: any) => any
+): Promise<{ data: any[]; count: number }> => {
   const startRange = options.itemsPerPage * (options.page - 1);
   const endRange = options.itemsPerPage * options.page - 1;
-  
-  let data: EntityState<ExpirableTableMapping[T]> = {
-    loading: false,
+
+  try {
+    const query = supabase.from<T, null>(table).select("*", { count: "exact" });
+    filters(query);
+    const response = await query.order("id", { ascending: true }).range(startRange, endRange);
+    return handleResponse<any>(response);
+  } catch (error: any) {
+    console.error(`Error fetching data from ${table}:`, error.message);
+    throw error;
+  }
+};
+
+export const readExpirableDataFromTable = async <
+  T extends keyof ExpirableTableMapping
+>(
+  table: T,
+  options: DataFetchOptions
+): Promise<EntityState<ExpirableTableMapping[T]>> => {
+  const data: EntityState<ExpirableTableMapping[T]> = {
+    loading: true,
     error: null,
     current: { data: [], count: 0 },
     deleted: { data: [], count: 0 },
@@ -33,278 +60,72 @@ export const readExpirableDataFromTable = async <T extends keyof ExpirableTableM
   };
 
   try {
-    let currentResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
-      await supabase
-        .from(table)
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .range(startRange, endRange)
-        .is("crew_member", null)
-        .gte("expiry_date", new Date().toISOString());
+    data.current = await fetchTableData(table, options, (query) =>
+      query.is("crew_member_id", null).gte("expiry_date", new Date().toISOString())
+    );
 
-    let deletedResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
-      await supabase
-        .from(table)
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .not("crew_member", "is", null)
-        .range(startRange, endRange);
+    data.deleted = await fetchTableData(table, options, (query) =>
+      query.not("crew_member_id", "is", null)
+    );
 
-    let expiredResponse: PostgrestSingleResponse<ExpirableTableMapping[T][]> =
-      await supabase
-        .from(table)
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .range(startRange, endRange)
-        .is("crew_member", null)
-        .lt("expiry_date", new Date().toISOString());
-
-    data.current = {
-      data: currentResponse.data || [],
-      count: currentResponse.count || 0,
-    }
-
-    data.deleted = {
-      data: deletedResponse.data || [],
-      count: deletedResponse.count || 0,
-    }
-
-    data.expired = {
-      data: expiredResponse.data || [],
-      count: expiredResponse.count || 0,
-    }
-
+    data.expired = await fetchTableData(table, options, (query) =>
+      query.is("crew_member_id", null).lt("expiry_date", new Date().toISOString())
+    );
   } catch (error: any) {
-    data.error = error || "An error occurred";
-    console.error(error);
-  
+    data.error = error.message || "An error occurred";
   } finally {
     data.loading = false;
     return data;
   }
-}
+};
 
-  
-export const readDeletableDataFromTable = async <T extends keyof DeletableTableMapping>(
+export const readDeletableDataFromTable = async <
+  T extends keyof DeletableTableMapping
+>(
   table: T,
   options: DataFetchOptions
-) => {
-
-  const startRange = options.itemsPerPage * (options.page - 1);
-  const endRange = options.itemsPerPage * options.page - 1;
-  
-  let data: EntityState<DeletableTableMapping[T]> = {
-    loading: false,
+): Promise<EntityState<DeletableTableMapping[T]>> => {
+  const data: EntityState<DeletableTableMapping[T]> = {
+    loading: true,
     error: null,
     current: { data: [], count: 0 },
-  }
+  };
 
   try {
-    let currentResponse: PostgrestSingleResponse<DeletableTableMapping[T][]> =
-      await supabase
-        .from(table)
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .range(startRange, endRange)
-
-    
-    data.current = {
-      data: currentResponse.data || [],
-      count: currentResponse.count || 0,
-    }
-
+    data.current = await fetchTableData(table, options, () => {});
   } catch (error: any) {
-    data.error = error || "An error occurred";
-    console.error(error);
-  
+    data.error = error.message || "An error occurred";
   } finally {
     data.loading = false;
     return data;
   }
-}
+};
 
-  /**
-   * Retrieves data from a table in the Supabase database.
-   * The data is paginated, with `page` and `itemsPerPage` options determining the range.
-   * The response object contains:
-   * - `current`: Items in the current page.
-   * - `loading`: Indicates if data fetching is in progress.
-   * - `error`: Any error that occurred during data fetching.
-   * @param {DataFetchOptions} options - The options for pagination.
-   * @returns {Promise<EntityState<T>>} - A promise resolving to the retrieved data.
-   */
 export const readDataFromTable = async <T extends keyof TableMapping>(
   table: T,
   options: DataFetchOptions
-) => {
-
-  const startRange = options.itemsPerPage * (options.page - 1);
-  const endRange = options.itemsPerPage * options.page - 1;
-  
-  let data: EntityState<TableMapping[T]> = {
-    loading: false,
+): Promise<EntityState<TableMapping[T]>> => {
+  const data: EntityState<TableMapping[T]> = {
+    loading: true,
     error: null,
     current: { data: [], count: 0 },
-  }
+  };
+
+  const hasCrewMemberColumn = ["table_with_crew_member_1", "table_with_crew_member_2"].includes(
+    table as string
+  );
 
   try {
-    let currentResponse: PostgrestSingleResponse<TableMapping[T][]> =
-      await supabase
-        .from(table)
-        .select("*", { count: "exact" })
-        .order("id", { ascending: true })
-        .range(startRange, endRange);
-    
-    data.current = {
-      data: currentResponse.data || [],
-      count: currentResponse.count || 0,
-    }
-
+    data.current = await fetchTableData(table, options, (query) => {
+      if (hasCrewMemberColumn) {
+        return query.is("crew_member_id", null);
+      }
+      return query;
+    });
   } catch (error: any) {
-    data.error = error || "An error occurred";
-    console.error(error);
-  
+    data.error = error.message || "An error occurred";
   } finally {
     data.loading = false;
     return data;
   }
-}
-
-
-// export const readDataFromTable = async (
-//   table: string,
-//   options: DataFetchOptions
-// ) => {
-//   let data = [];
-
-//   try {
-//     const { data: responseData, error } = await supabase
-//       .from(table)
-//       .select("*", { count: "exact" })
-//       .order("id", { ascending: true })
-//       .range(
-//         options.itemsPerPage * (options.page - 1),
-//         options.itemsPerPage * options.page - 1
-//       );
-
-//     if (error) throw error;
-//     data = responseData;
-//   } catch (error: any) {
-//     console.error("Error fetching data:", error.message);
-//   }
-
-//   return data;
-// };
-
-
-// export const readDeletableDataFromTable = async (
-//   table: string,
-//   options: DataFetchOptions
-// ) => {
-//   let currentData = [];
-//   let deletedData = [];
-
-//   try {
-//     const { data: currentResponse, error: currentError } = await supabase
-//       .from(table)
-//       .select("*", { count: "exact" })
-//       .order("id", { ascending: true })
-//       .eq("is_deleted", false)
-//       .range(
-//         options.itemsPerPage * (options.page - 1),
-//         options.itemsPerPage * options.page - 1
-//       );
-
-//     const { data: deletedResponse, error: deletedError } = await supabase
-//       .from(table)
-//       .select("*", { count: "exact" })
-//       .order("id", { ascending: true })
-//       .eq("is_deleted", true)
-//       .range(
-//         options.itemsPerPage * (options.page - 1),
-//         options.itemsPerPage * options.page - 1
-//       );
-
-//     if (currentError || deletedError)
-//       throw new Error("Error fetching deletable data");
-
-//     currentData = currentResponse;
-//     deletedData = deletedResponse;
-//   } catch (error: any) {
-//     console.error("Error fetching deletable data:", error.message);
-//   }
-
-//   return { currentData, deletedData };
-// };
-
-
-// /**
-//  * Reads data from a table with the following filters:
-//  * - `is_deleted` is `false` for current data
-//  * - `is_deleted` is `true` for deleted data
-//  * - `expiry_date` is less than the current UTC time for expired data
-//  *
-//  * @param {string} table The name of the table
-//  * @param {object} options Options to filter the data
-//  * @param {number} options.itemsPerPage The number of items to fetch per page
-//  * @param {number} options.page The page to fetch
-//  * @param {string} options.keywords Keywords to search for
-//  * @returns {Promise<object>} An object with the following properties: `currentData`, `deletedData`, `expiredData`
-//  */
-// export const readExpirableDataFromTable = async <T extends keyof TableDataMapping> (
-//   table: string,
-//   options: DataFetchOptions
-// ) => {
-//   let currentData: T;
-//   let deletedData: T;
-//   let expiredData: T;
-
-//   const nowUtc = new Date().toISOString();
-
-//   try {
-//     const { data: currentResponse, error: currentError } = await supabase
-//       .from(table)
-//       .select("*", { count: "exact" })
-//       .order("id", { ascending: true })
-//       .eq("is_deleted", false)
-//       .range(
-//         options.itemsPerPage * (options.page - 1),
-//         options.itemsPerPage * options.page - 1
-//       );
-
-//     const { data: deletedResponse, error: deletedError } = await supabase
-//       .from(table)
-//       .select("*", { count: "exact" })
-//       .order("id", { ascending: true })
-//       .eq("is_deleted", true)
-//       .range(
-//         options.itemsPerPage * (options.page - 1),
-//         options.itemsPerPage * options.page - 1
-//       );
-
-//     const { data: expiredResponse, error: expiredError } = await supabase
-//       .from(table)
-//       .select("*")
-//       .order("id", { ascending: true })
-//       .eq("is_deleted", false)
-//       .lt("expiry_date", nowUtc);
-
-//     if (currentError || deletedError || expiredError)
-//       throw new Error("Error fetching expirable data");
-
-//     currentData = currentResponse;
-//     deletedData = deletedResponse;
-//     expiredData = expiredResponse;
-//   } catch (error: any) {
-//     console.error("Error fetching expirable data:", error.message);
-//   }
-
-//   return { currentData, deletedData, expiredData };
-// };
-
-
-
-
-
-
-// Same pattern applies for readRowFromTable, editRowFromTable, createRowFromTable, deleteRowFromTable
+};
