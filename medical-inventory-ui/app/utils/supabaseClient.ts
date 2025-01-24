@@ -1,5 +1,7 @@
+import Constants from "expo-constants";
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type {
+  ExtraConfig,
   DataFetchOptions,
   ExpirableTableMapping,
   DeletableTableMapping,
@@ -7,11 +9,13 @@ import type {
   EntityState,
 } from "@/app/utils/types";
 
-const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvd2VnZm1raWluZHB0cG5zc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg0OTE0MzksImV4cCI6MjA0NDA2NzQzOX0._rrgcRNIZYDMqdQaqEWgrHNvFp4jGkk-dFF4ohxroq0";
+// const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
+// const SUPABASE_ANON_KEY =
+//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvd2VnZm1raWluZHB0cG5zc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg0OTE0MzksImV4cCI6MjA0NDA2NzQzOX0._rrgcRNIZYDMqdQaqEWgrHNvFp4jGkk-dFF4ohxroq0";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const config = Constants.expoConfig?.extra as ExtraConfig;
+
+export const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
 
 const handleResponse = async <T>(
   response: PostgrestSingleResponse<T[]>
@@ -37,7 +41,9 @@ const fetchTableData = async <T extends string>(
   try {
     const query = supabase.from<T, null>(table).select("*", { count: "exact" });
     filters(query);
-    const response = await query.order("id", { ascending: true }).range(startRange, endRange);
+    const response = await query
+      .order("id", { ascending: true })
+      .range(startRange, endRange);
     return handleResponse<any>(response);
   } catch (error: any) {
     console.error(`Error fetching data from ${table}:`, error.message);
@@ -61,7 +67,9 @@ export const readExpirableDataFromTable = async <
 
   try {
     data.current = await fetchTableData(table, options, (query) =>
-      query.is("crew_member_id", null).gte("expiry_date", new Date().toISOString())
+      query
+        .is("crew_member_id", null)
+        .gte("expiry_date", new Date().toISOString())
     );
 
     data.deleted = await fetchTableData(table, options, (query) =>
@@ -69,7 +77,9 @@ export const readExpirableDataFromTable = async <
     );
 
     data.expired = await fetchTableData(table, options, (query) =>
-      query.is("crew_member_id", null).lt("expiry_date", new Date().toISOString())
+      query
+        .is("crew_member_id", null)
+        .lt("expiry_date", new Date().toISOString())
     );
   } catch (error: any) {
     data.error = error.message || "An error occurred";
@@ -111,9 +121,10 @@ export const readDataFromTable = async <T extends keyof TableMapping>(
     current: { data: [], count: 0 },
   };
 
-  const hasCrewMemberColumn = ["table_with_crew_member_1", "table_with_crew_member_2"].includes(
-    table as string
-  );
+  const hasCrewMemberColumn = [
+    "table_with_crew_member_1",
+    "table_with_crew_member_2",
+  ].includes(table as string);
 
   try {
     data.current = await fetchTableData(table, options, (query) => {
