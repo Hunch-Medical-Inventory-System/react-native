@@ -38,9 +38,9 @@ export type SuppliesData = {
   id: number;
   type: string;
   item: string;
-  strength: string;
+  strength_or_volume: string;
   route_of_use: string;
-  quantity_in_package: number;
+  quantity_in_pack: number;
   possible_side_effects: string;
   location: string;
   created_at: string;
