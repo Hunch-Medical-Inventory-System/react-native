@@ -1,5 +1,17 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, ImageBackground } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  ImageBackground,
+  Dimensions,
+  Platform,
+} from 'react-native';
+
+const { width, height } = Dimensions.get('window');
+const isLargeScreen = width > 768;
 
 const App = () => {
   return (
@@ -43,15 +55,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 20,
+    paddingVertical: isLargeScreen ? 40 : 20,
   },
   headerContainer: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: isLargeScreen ? 50 : 30,
   },
   title2: {
     fontFamily: 'Anton',
-    fontSize: 80,
+    fontSize: isLargeScreen ? 100 : 60,
     fontWeight: '400',
     color: '#ffffff',
     textAlign: 'center',
@@ -60,8 +72,8 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   title: {
-    fontFamily: 'Anton-Regular', 
-    fontSize: 140,
+    fontFamily: 'Anton-Regular',
+    fontSize: isLargeScreen ? 180 : 120,
     fontWeight: '700',
     color: '#ffffff',
     textAlign: 'center',
@@ -74,13 +86,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     width: '100%',
-    marginTop: 20,
+    marginTop: isLargeScreen ? 40 : 20,
+    flexWrap: isLargeScreen ? 'nowrap' : 'wrap', // Wrap images on smaller screens
   },
   image: {
-    width: 300, // Increased size
-    height: 300, 
-    marginHorizontal: 15, 
-    resizeMode: 'contain', 
+    width: isLargeScreen ? 300 : 150,
+    height: isLargeScreen ? 300 : 150,
+    marginHorizontal: isLargeScreen ? 20 : 10,
+    marginVertical: isLargeScreen ? 0 : 10, // Add margin for smaller screens
+    resizeMode: 'contain',
   },
 });
 
