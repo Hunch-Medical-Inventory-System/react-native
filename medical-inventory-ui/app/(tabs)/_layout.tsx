@@ -1,11 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Surface } from 'react-native-paper';
 
 export default function TabLayout() {
   return (
-    <View style={styles.container}>
+    <Surface>
       <Text>Placeholder for additional screens or navigators</Text>
-    </View>
+    </Surface>
   );
 }
 
