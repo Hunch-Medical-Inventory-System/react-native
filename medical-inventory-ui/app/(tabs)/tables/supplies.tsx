@@ -95,6 +95,8 @@ const SuppliesTable = () => {
     toggleDeleteDialog();
   };
 
+
+  
   const renderRow = (item: SuppliesData) => (
     <DataTable.Row key={item.id}>
       <DataTable.Cell>{item.id}</DataTable.Cell>
