@@ -6,9 +6,9 @@ import type {
   SuppliesData,
 } from "@/app/utils/types";
 
-// Async action for retrieving inventory data
+// Async action for retrieving supplies data
 export const retrieveSupplies = createAsyncThunk(
-  "inventory/retrieveInventory",
+  "supplies/retrieveSupplies",
   async (options: DataFetchOptions) => {
     const data = await readDeletableDataFromTable("supplies", options);
     return data;
@@ -35,7 +35,7 @@ const suppliesSlice = createSlice({
         state.error = action.payload.error;
         state.current = action.payload.current;
       })
-      .addCase(retrieveSupplies.rejected, (state) => {
+      .addCase(retrieveSupplies.rejected, (state, action) => {
         state.loading = false;
       });
   },

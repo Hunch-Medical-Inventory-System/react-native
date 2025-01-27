@@ -9,10 +9,6 @@ import type {
   EntityState,
 } from "@/app/utils/types";
 
-// const SUPABASE_URL = "https://xowegfmkiindptpnsscg.supabase.co";
-// const SUPABASE_ANON_KEY =
-//   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhvd2VnZm1raWluZHB0cG5zc2NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjg0OTE0MzksImV4cCI6MjA0NDA2NzQzOX0._rrgcRNIZYDMqdQaqEWgrHNvFp4jGkk-dFF4ohxroq0";
-
 const config = Constants.expoConfig?.extra as ExtraConfig;
 
 export const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
@@ -44,7 +40,7 @@ const fetchTableData = async <T extends string>(
     const response = await query
       .order("id", { ascending: true })
       .range(startRange, endRange);
-    return handleResponse<any>(response);
+    return handleResponse<T>(response);
   } catch (error: any) {
     console.error(`Error fetching data from ${table}:`, error.message);
     throw error;
