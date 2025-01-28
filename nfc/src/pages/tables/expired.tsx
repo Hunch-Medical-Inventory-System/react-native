@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet } from 'react-native'
 import { Button, Text, Chip, Surface, Card } from 'react-native-paper'
 import { useSelector, useDispatch } from 'react-redux'
 import { retrieveInventory } from '@/store/tables/inventorySlice'
+import { retrieveSupplies } from '@/store/tables/suppliesSlice'
 import type { RootState, AppDispatch } from '@/store'
 import type { EntityState, InventoryData, SuppliesData } from '@/types/tables'
 
@@ -15,6 +16,7 @@ const Expired = () => {
 
   useEffect(() => {
     dispatch(retrieveInventory({ itemsPerPage: 10, page: 1, keywords: "" }))
+    dispatch(retrieveSupplies({ itemsPerPage: 10, page: 1, keywords: "" }))
   }, [])
 
   console.log(suppliesData)

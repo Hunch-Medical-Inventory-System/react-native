@@ -3,6 +3,7 @@ import { View, StyleSheet, TextInput } from 'react-native';
 import { Button, Text, DataTable, ActivityIndicator, Dialog, Portal } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { retrieveInventory, addInventory, updateInventory, deleteInventory } from '@/store/tables/inventorySlice';
+import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 import type { RootState, AppDispatch } from '@/store';
 import type { SuppliesData, EntityState } from '@/types/tables';
 
@@ -38,7 +39,7 @@ const SuppliesTable = () => {
 
   const loadSupplies = () => {
     dispatch(
-      retrieveInventory({
+      retrieveSupplies({
         keywords: search,
         page,
         itemsPerPage,
