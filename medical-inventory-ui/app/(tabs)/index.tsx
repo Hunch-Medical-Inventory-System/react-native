@@ -5,9 +5,7 @@ import {
   Image,
   StyleSheet,
   ScrollView,
-  ImageBackground,
   Dimensions,
-  Platform,
 } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -15,10 +13,7 @@ const isLargeScreen = width > 768;
 
 const App = () => {
   return (
-    <ImageBackground
-      source={require('@/assets/images/background.png')}
-      style={styles.background}
-    >
+    <View style={styles.background}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headerContainer}>
           <Text style={styles.title2}>Medical Based</Text>
@@ -40,16 +35,14 @@ const App = () => {
           />
         </View>
       </ScrollView>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: 'cover',
-    width: '100%',
-    height: '100%',
+    backgroundColor: '#0F0F1F',
   },
   container: {
     flexGrow: 1,
@@ -65,21 +58,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Anton',
     fontSize: isLargeScreen ? 100 : 60,
     fontWeight: '400',
-    color: '#ffffff',
+    color: '#E94560',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 3,
   },
   title: {
     fontFamily: 'Anton-Regular',
     fontSize: isLargeScreen ? 180 : 120,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#E94560',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 3,
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 3, height: 3 },
+    textShadowRadius: 5,
   },
   imageRow: {
     flexDirection: 'row',
@@ -87,13 +80,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     marginTop: isLargeScreen ? 40 : 20,
-    flexWrap: isLargeScreen ? 'nowrap' : 'wrap', // Wrap images on smaller screens
+    flexWrap: isLargeScreen ? 'nowrap' : 'wrap',
   },
   image: {
     width: isLargeScreen ? 300 : 150,
     height: isLargeScreen ? 300 : 150,
     marginHorizontal: isLargeScreen ? 20 : 10,
-    marginVertical: isLargeScreen ? 0 : 10, // Add margin for smaller screens
+    marginVertical: isLargeScreen ? 0 : 10,
     resizeMode: 'contain',
   },
 });

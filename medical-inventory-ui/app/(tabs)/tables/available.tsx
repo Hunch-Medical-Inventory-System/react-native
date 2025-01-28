@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { retrieveInventory } from '@/app/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/app/store';
 import type { InventoryData, EntityState } from '@/app/utils/types';
-import { ImageBackground } from 'react-native';
 
 const InventoryTable = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -13,7 +12,6 @@ const InventoryTable = () => {
     (state: RootState) => state.inventory
   );
   const [search, setSearch] = useState('');
-  const background = require('@/assets/images/background.png');
 
   useEffect(() => {
     fetchInventory();
@@ -34,9 +32,9 @@ const InventoryTable = () => {
     const expiry = new Date(expiryDate);
     const daysToExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (daysToExpiry <= 0) return { backgroundColor: '#b21414' }; // Expired
-    if (daysToExpiry <= 3) return { backgroundColor: '#fff4cc' }; // Warning
-    return { backgroundColor: '#000000' }; // Success
+    if (daysToExpiry <= 0) return { borderColor: '#E94560' }; // Expired
+    if (daysToExpiry <= 3) return { borderColor: '#F5A623' }; // Warning
+    return { borderColor: '#0F3460' }; // Success
   };
 
   const renderRow = ({ item }: { item: InventoryData }) => {
@@ -56,7 +54,7 @@ const InventoryTable = () => {
   };
 
   return (
-    <ImageBackground source={background} style={styles.background} imageStyle={styles.backgroundImage}>
+    <View style={styles.background}>
       <Appbar.Header style={styles.appBar}>
         <Appbar.Content title="Inventory Table" titleStyle={styles.appBarTitle} />
         <Appbar.Action icon="refresh" onPress={fetchInventory} />
@@ -70,10 +68,12 @@ const InventoryTable = () => {
           onChangeText={setSearch}
           style={styles.searchInput}
           placeholder="Search by supply ID or card ID"
+          placeholderTextColor="#A0A0B0"
+          theme={{ colors: { text: '#ffffff', primary: '#E94560' } }}
         />
 
         {loading ? (
-          <ActivityIndicator animating={true} size="large" style={styles.loader} />
+          <ActivityIndicator animating={true} size="large" style={styles.loader} color="#E94560" />
         ) : error ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error loading inventory: {error}</Text>
@@ -84,7 +84,7 @@ const InventoryTable = () => {
             renderItem={renderRow}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}
-            columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 8 }}
+            columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContainer}
           />
         ) : (
@@ -93,34 +93,33 @@ const InventoryTable = () => {
           </View>
         )}
       </View>
-    </ImageBackground>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   appBar: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#1A1A2E',
+    elevation: 0,
   },
   appBarTitle: {
-    color: '#ffffff',
+    color: '#E94560',
     fontWeight: 'bold',
   },
   container: {
     flex: 1,
-    padding: 8,
+    padding: 16,
   },
   background: {
     flex: 1,
-    resizeMode: 'cover',
-  },
-  backgroundImage: {
-    opacity: 1,
+    backgroundColor: '#0F0F1F',
   },
   searchInput: {
-    marginBottom: 8,
-    backgroundColor: '#ffffff',
+    marginBottom: 16,
+    backgroundColor: '#1A1A2E',
     borderRadius: 8,
     fontSize: 14,
+    color: '#ffffff',
   },
   loader: {
     marginTop: 20,
@@ -128,30 +127,34 @@ const styles = StyleSheet.create({
   listContainer: {
     paddingBottom: 8,
   },
+  columnWrapper: {
+    justifyContent: 'space-between',
+    paddingHorizontal: 8,
+  },
   card: {
     width: '48%',
-    marginBottom: 8,
-    borderRadius: 6,
+    marginBottom: 16,
+    borderRadius: 12,
     elevation: 4,
+    borderWidth: 1.5,
+    backgroundColor: '#1A1A2E',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 3,
-    padding: 6,
-    backgroundColor: '#ffffff',
+    shadowRadius: 4,
   },
   cardContent: {
-    padding: 0,
+    padding: 8,
     flexShrink: 1,
   },
   cardTitle: {
     fontWeight: 'bold',
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 14,
+    color: '#F0F0F0',
   },
   cardText: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    color: '#A0A0B0',
   },
   errorContainer: {
     flex: 1,
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     marginBottom: 16,
-    color: 'red',
+    color: '#E94560',
   },
   noDataContainer: {
     flex: 1,
@@ -171,7 +174,7 @@ const styles = StyleSheet.create({
   noDataText: {
     fontSize: 18,
     marginBottom: 16,
-    color: '#333',
+    color: '#A0A0B0',
   },
 });
 

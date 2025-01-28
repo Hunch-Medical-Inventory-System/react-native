@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { View, ImageBackground, StyleSheet, ScrollView } from 'react-native';
-import { Button, Text, Chip, Surface, Card, DataTable } from 'react-native-paper';
+import { View, StyleSheet, ScrollView } from 'react-native';
+import { Button, Text, Chip, Card, Surface } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
 import { retrieveInventory } from '@/app/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/app/store';
@@ -20,16 +20,16 @@ const Expired = () => {
 
     return (
       <Card style={styles.card} key={item.id}>
-        <Card.Title title={suppliesData.loading ? 'Loading...' : supply?.item || 'Unknown Supply'} />
         <Card.Content>
-          <Text>Quantity: {item.quantity}</Text>
-          <Text>
-            Expiry Date: <Chip>{new Date(item.expiry_date).toLocaleDateString()}</Chip>
+          <Text style={styles.cardTitle}>{supply?.item || 'Unknown Supply'}</Text>
+          <Text style={styles.cardText}>Quantity: {item.quantity}</Text>
+          <Text style={styles.cardText}>
+            Expiry Date: <Chip style={styles.chip}>{new Date(item.expiry_date).toLocaleDateString()}</Chip>
           </Text>
         </Card.Content>
         <Card.Actions>
-          <Button>View</Button>
-          <Button>Edit</Button>
+          <Button textColor="#E94560">View</Button>
+          <Button textColor="#E94560">Edit</Button>
         </Card.Actions>
       </Card>
     );
@@ -37,73 +37,94 @@ const Expired = () => {
 
   if (inventoryData.loading || suppliesData.loading) {
     return (
-      <ImageBackground
-        source={require('@/assets/images/background.png')}
-        style={styles.background}
-      >
-        <View style={styles.centeredView}>
-          <Text>Loading...</Text>
-        </View>
-      </ImageBackground>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
     );
   }
 
   if (!inventoryData.expired?.data?.length) {
     return (
-      <ImageBackground
-        source={require('@/assets/images/background.png')}
-        style={styles.background}
-      >
-        <View style={styles.centeredView}>
-          <Text>No Data</Text>
-        </View>
-      </ImageBackground>
+      <View style={styles.noDataContainer}>
+        <Text style={styles.noDataText}>No Data</Text>
+      </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require('@/assets/images/background.png')}
-      style={styles.background}
-    >
-      <ScrollView>
-        <Surface style={styles.container}>
-          <Text variant="displayLarge">Expired Inventory</Text>
-          <View style={styles.cardContainer}>
-            {inventoryData.expired.data.map((item) => renderRow(item))}
-          </View>
-        </Surface>
-      </ScrollView>
-    </ImageBackground>
+    <ScrollView style={styles.background}>
+      <Surface style={styles.container}>
+        <Text style={styles.header}>Expired Inventory</Text>
+        <View style={styles.cardContainer}>
+          {inventoryData.expired.data.map((item) => renderRow(item))}
+        </View>
+      </Surface>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    resizeMode: 'cover',
+    backgroundColor: '#0F0F1F',
   },
   container: {
-    padding: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 16,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#F0F0F0',
+    marginBottom: 16,
     textAlign: 'center',
   },
-  centeredView: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0F0F1F',
+  },
+  loadingText: {
+    color: '#A0A0B0',
+    fontSize: 18,
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#0F0F1F',
+  },
+  noDataText: {
+    color: '#A0A0B0',
+    fontSize: 18,
   },
   cardContainer: {
-    padding: 20,
-    display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   card: {
-    margin: 20,
-    padding: 10,
-    flexGrow: 1,
+    width: '48%',
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: '#1A1A2E',
+    borderWidth: 1.5,
+    borderColor: '#E94560',
+    padding: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#F0F0F0',
+    marginBottom: 8,
+  },
+  cardText: {
+    fontSize: 14,
+    color: '#A0A0B0',
+  },
+  chip: {
+    backgroundColor: '#E94560',
+    color: '#FFF',
   },
 });
 
