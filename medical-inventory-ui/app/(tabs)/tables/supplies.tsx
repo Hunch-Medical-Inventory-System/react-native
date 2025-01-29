@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
 import { Button, Text, DataTable, ActivityIndicator } from 'react-native-paper';
 import { useSelector, useDispatch } from 'react-redux';
-import { retrieveSupplies } from '/workspaces/react-native/medical-inventory-ui/app/store/tables/suppliesSlice';
+import { retrieveSupplies } from '@/app/store/tables/suppliesSlice';
 import type { RootState, AppDispatch } from '@/app/store';
 import type { SuppliesData, EntityState } from '@/app/utils/types';
 

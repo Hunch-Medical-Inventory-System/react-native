@@ -6,7 +6,7 @@ import Costs from './Costs'
 import Timeline from './Timeline'
 
 
-const about = () => {
+const About = () => {
   return (
     <ScrollView contentContainerStyle={{flexGrow: 1}}>
       <Surface style={styles.container}>  
@@ -31,4 +31,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default about
+export default About

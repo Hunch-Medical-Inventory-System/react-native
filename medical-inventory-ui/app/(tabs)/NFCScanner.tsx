@@ -1,45 +1,41 @@
-import { View, Text } from 'react-native'
-import React, { useState, useEffect } from 'react'
-import NfcManager, { NfcEvents } from 'react-native-nfc-manager';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button, Alert } from 'react-native';
+import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 
+// Initialize NFC
+NfcManager.start();
 
 const NFCScanner = () => {
-  
-  const [hasNfc, setHasNFC ] = useState<boolean | null>(null);
+  const [hasNfc, setHasNfc] = useState<Boolean | null>(null);
 
   useEffect(() => {
-    const checkIsSupported = async () => {
-      const deviceIsSupported: boolean = await NfcManager.isSupported()
+    // Check if the device supports NFC
+    NfcManager.isSupported()
+      .then(supported => {
+        console.log(supported)
+        setHasNfc(supported)
+      })
+      .catch(() => setHasNfc(false));
+  }, []);
 
-      setHasNFC(deviceIsSupported)
-      if (deviceIsSupported) {
-        await NfcManager.start()
-      }
+  const readNfc = async () => {
+    try {
+      await NfcManager.requestTechnology(NfcTech.Ndef);
+      const tag = await NfcManager.getTag();
+      Alert.alert("NFC Tag Detected", JSON.stringify(tag));
+    } catch (error) {
+      Alert.alert("Error", "Failed to read NFC tag");
+    } finally {
+      NfcManager.cancelTechnologyRequest();
     }
+  };
 
-    checkIsSupported()
-  }, [])
-
-  useEffect(() => {
-    NfcManager.setEventListener(NfcEvents.DiscoverTag, (_tag: any) => {
-      console.log('tag found')
-    })
-
-    return () => {
-      NfcManager.setEventListener(NfcEvents.DiscoverTag, null);
-    }
-  }, [])
-
-
-  const readTag = async () => {
-    await NfcManager.registerTagEvent();
-  }
-  
   return (
-    <View>
-      <Text>NFCScanner</Text>
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text>{hasNfc === null ? "Checking NFC..." : hasNfc ? "NFC Supported ✅" : "NFC Not Supported ❌"}</Text>
+      {hasNfc && <Button title="Scan NFC Tag" onPress={readNfc} />}
     </View>
-  )
-}
+  );
+};
 
-export default NFCScanner
+export default NFCScanner;
