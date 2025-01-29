@@ -17,6 +17,7 @@ import Logs from './(tabs)/tables/logs';
 import React from 'react';
 import About from './(tabs)/about';
 import NFCScanner from './(tabs)/NFCScanner';
+import NFCWriter from './(tabs)/NFCWriter';
 
 export {
 
@@ -88,6 +89,7 @@ function RootLayoutNav() {
       <Drawer.Screen name="Supplies" component={Supplies} />
       <Drawer.Screen name="Logs" component={Logs} />
       <Drawer.Screen name="NFC Scanner" component={NFCScanner} />
+      <Drawer.Screen name="NFC Writer" component={NFCWriter} />
     </Drawer.Navigator>
   );
 }
