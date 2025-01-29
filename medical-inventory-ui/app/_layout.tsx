@@ -18,16 +18,16 @@ import React from 'react';
 import About from './(tabs)/about';
 
 export {
-  // Catch any errors thrown by the Layout component.
+
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on /modal keeps a back button present.
+
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+
 SplashScreen.preventAutoHideAsync();
 
 const Drawer = createDrawerNavigator();
@@ -38,7 +38,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
+
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -69,9 +69,14 @@ function RootLayoutNav() {
     <Drawer.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#121212' : '#f5f5f5',
+          backgroundColor: '#0f0f1f', // Navbar background color
         },
-        headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
+        headerTintColor: '#fff', // Header text color
+        drawerStyle: {
+          backgroundColor: '#0f0f1f', // Drawer navbar background color
+        },
+        drawerActiveTintColor: '#fff', // Active item text color
+        drawerInactiveTintColor: '#fff', // Inactive item text color
       }}
     >
       <Drawer.Screen name="Home" component={TabOneScreen} />
