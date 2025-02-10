@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { Provider as ReduxProvider } from 'react-redux';
@@ -16,19 +16,19 @@ import Supplies from './(tabs)/tables/supplies';
 import Logs from './(tabs)/tables/logs';
 import React from 'react';
 import About from './(tabs)/about';
-import NFCScanner from './(tabs)/NFCScanner';
-import NFCWriter from './(tabs)/NFCWriter';
+import NFCScanner from './(tabs)/nfc/NFCScanner';
+import NFCWriter from './(tabs)/nfc/NFCWriter';
+import AuthPage from './(tabs)/Authentication'; // Import AuthPage
+
+import { supabase } from '@/app/utils/supabaseClient'; // Import Supabase client
 
 export {
-
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-
   initialRouteName: '(tabs)',
 };
-
 
 SplashScreen.preventAutoHideAsync();
 
@@ -40,6 +40,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     if (error) throw error;
@@ -51,6 +52,27 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session); // Set authenticated state based on session
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session); // Update authentication state when session changes
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, [loaded]);
+
+  const handleAuthSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
   if (!loaded) {
     return null;
   }
@@ -58,7 +80,7 @@ export default function RootLayout() {
   return (
     <ReduxProvider store={store}>
       <PaperProvider>
-        <RootLayoutNav />
+        {isAuthenticated ? <RootLayoutNav /> : <AuthPage onAuthSuccess={handleAuthSuccess} />}
       </PaperProvider>
     </ReduxProvider>
   );

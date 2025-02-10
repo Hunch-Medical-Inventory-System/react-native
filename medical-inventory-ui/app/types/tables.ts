@@ -1,8 +1,3 @@
-export type ExtraConfig = {
-  SUPABASE_URL: string;
-  SUPABASE_ANON_KEY: string;
-};
-
 export type DataFetchOptions = {
   itemsPerPage: number;
   page: number;
@@ -11,16 +6,16 @@ export type DataFetchOptions = {
 
 export type ExpirableTableMapping = {
   inventory: InventoryData;
-}
+};
 
-export type DeletableTableMapping  = {
+export type DeletableTableMapping = {
   supplies: SuppliesData;
-} & ExpirableTableMapping;
+};
 
 export type TableMapping = {
   crew: CrewData;
   logs: LogsData;
-} & DeletableTableMapping;
+} & ExpirableTableMapping & DeletableTableMapping;
 
 export type EntityState<T> = {
   loading: boolean;
@@ -31,13 +26,12 @@ export type EntityState<T> = {
 };
 
 export type InventoryData = {
-  id: number;
-  card_id: number;
+  id?: number;
   supply_id: number;
-  crew_member_id: number;
   quantity: number;
-  created_at: string;
-  expiry_date?: string;
+  created_at?: string;
+  expiry_date: string;
+  user_id?: number;
 };
 export type SuppliesData = {
   id: number;

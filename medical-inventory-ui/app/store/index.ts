@@ -3,6 +3,7 @@ import inventoryReducer from "./tables/inventorySlice";
 import suppliesReducer from "./tables/suppliesSlice";
 import crewReducer from "./tables/crewSlice";
 import logsReducer from "./tables/logsSlice";
+import { useDispatch } from "react-redux";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,8 @@ export const store = configureStore({
     logs: logsReducer,
   },
 });
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;

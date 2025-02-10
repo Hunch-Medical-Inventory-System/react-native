@@ -1,13 +1,13 @@
 import Constants from "expo-constants";
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
+import type { ExtraConfig } from "@/app/types";
 import type {
-  ExtraConfig,
   DataFetchOptions,
   ExpirableTableMapping,
   DeletableTableMapping,
   TableMapping,
   EntityState,
-} from "@/app/utils/types";
+} from "@/app/types/tables";
 
 const config = Constants.expoConfig?.extra as ExtraConfig;
 
@@ -64,17 +64,17 @@ export const readExpirableDataFromTable = async <
   try {
     data.current = await fetchTableData(table, options, (query) =>
       query
-        .is("crew_member_id", null)
+        .is("user_id", null)
         .gte("expiry_date", new Date().toISOString())
     );
 
     data.deleted = await fetchTableData(table, options, (query) =>
-      query.not("crew_member_id", "is", null)
+      query.not("user_id", "is", null)
     );
 
     data.expired = await fetchTableData(table, options, (query) =>
       query
-        .is("crew_member_id", null)
+        .is("user_id", null)
         .lt("expiry_date", new Date().toISOString())
     );
   } catch (error: any) {
@@ -136,3 +136,69 @@ export const readDataFromTable = async <T extends keyof TableMapping>(
     return data;
   }
 };
+
+export const readRowFromTable = async <T extends keyof TableMapping>(
+  table: T,
+  id: number
+): Promise<TableMapping[T] | null> => {
+  try {
+    const response = await supabase.from(table).select("*").eq("id", id).single();
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+    return response.data || null;
+  } catch (error: any) {
+    console.error(`Error fetching row from ${table}:`, error.message);
+    return null;
+  }
+}
+
+export const AddRowInTable = async <T extends keyof TableMapping>(
+  table: T,
+  data: TableMapping[T]
+): Promise<number | string> => {
+  // Promise will resolve to either number (id) or string (error message)
+  try {
+    console.log("Data being inserted:", data);
+    const response = await supabase.from(table).insert(data).select(); // .select() to fetch inserted data
+
+    console.log("Insert response:", response);
+
+    if (response.error) {
+      throw new Error(response.error.message); // If there is an error, throw it
+    }
+
+    const insertedRecord = response.data
+      ? (response.data[0] as { id: number })
+      : null; // Get the first inserted record
+    if (!insertedRecord) {
+      throw new Error("No data returned from insert operation");
+    }
+
+    return insertedRecord.id; // Return the id of the inserted record
+  } catch (error: any) {
+    console.error(`Error adding data to ${table}:`, error.message);
+    return error.message; // Return the error message if the insertion fails
+  }
+};
+
+export const updateRowInTable = async <T extends keyof TableMapping>(
+  table: T,
+  id: number,
+  data: Partial<TableMapping[T]>
+): Promise<boolean> => {
+  try {
+    const response = await supabase.from(table).update(data).eq("id", id);
+
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    return true;
+  } catch (error: any) {
+    console.error(`Error updating row in ${table}:`, error.message);
+    return false;
+  }
+};
+
+

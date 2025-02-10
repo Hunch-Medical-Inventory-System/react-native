@@ -4,7 +4,7 @@ import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 're
 import { useDispatch, useSelector } from 'react-redux';
 import { retrieveInventory } from '@/app/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/app/store';
-import type { InventoryData, EntityState } from '@/app/utils/types';
+import type { InventoryData, EntityState } from '@/app/types/tables';
 
 const InventoryTable = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -43,7 +43,6 @@ const InventoryTable = () => {
       <Card style={[styles.card, expiryStyle]}>
         <Card.Content style={styles.cardContent}>
           <Title style={styles.cardTitle}>Supply ID: {item.supply_id}</Title>
-          <Paragraph style={styles.cardText}>Card ID: {item.card_id}</Paragraph>
           <Paragraph style={styles.cardText}>Quantity: {item.quantity}</Paragraph>
           <Paragraph style={styles.cardText}>
             Expiry: {new Date(item.expiry_date).toLocaleDateString()}
@@ -82,7 +81,7 @@ const InventoryTable = () => {
           <FlatList
             data={current.data}
             renderItem={renderRow}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => (item.id ?? '').toString()}
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContainer}
