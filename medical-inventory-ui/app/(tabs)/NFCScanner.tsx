@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Alert } from 'react-native';
+import { View, Text, Button, Alert, ScrollView } from 'react-native';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 
 // Initialize NFC
@@ -55,12 +55,22 @@ const App = () => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Text>NFC Reader</Text>
       <Button title="Scan NFC Tag" onPress={readNfcTag} disabled={scanning} />
       {nfcData && <Text style={{ marginTop: 20 }}>Data: {nfcData}</Text>}
-    </View>
+      
+    </ScrollView>
   );
 };
+
+const Data = () => {
+  return (
+    <View>
+      <Text>Data</Text>
+    </View>
+  )
+}
+
 
 export default App;
