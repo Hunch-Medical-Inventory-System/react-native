@@ -188,7 +188,7 @@ export const updateRowInTable = async <T extends keyof TableMapping>(
   data: Partial<TableMapping[T]>
 ): Promise<boolean> => {
   try {
-    const response = await supabase.from(table).update(data).eq("id", id);
+    const response = await supabase.from(table).upsert(data).eq("id", id);
 
     if (response.error) {
       throw new Error(response.error.message);

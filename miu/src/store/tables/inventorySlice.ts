@@ -1,18 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { readExpirableDataFromTable, AddRowInTable, readRowFromTable, updateRowInTable } from "@/utils/supabaseClient";
-import type { SuppliesData } from '@/utils/types'; 
 import type { DataFetchOptions, EntityState, InventoryData } from "@/types/tables";
-
-// Async action for retrieving inventory data
-export const retrieveInventory = createAsyncThunk(
-  "inventory/retrieveInventory",
-  async (options: DataFetchOptions) => {
-
-    const data = await readExpirableDataFromTable("inventory", options);
-    return data;
-    
-  }
-);
 
 const initialState: EntityState<InventoryData> = {
   loading: true,
@@ -43,6 +31,17 @@ const inventorySlice = createSlice({
       });   
   },
 });
+
+// Async action for retrieving inventory data
+export const retrieveInventory = createAsyncThunk(
+  "inventory/retrieveInventory",
+  async (options: DataFetchOptions) => {
+
+    const data = await readExpirableDataFromTable("inventory", options);
+    return data;
+    
+  }
+);
 
 export const fetchInventoryData = createAsyncThunk(
   "inventory/fetchData",

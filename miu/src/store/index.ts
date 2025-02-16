@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import inventoryReducer from "./tables/inventorySlice";
 import suppliesReducer from "./tables/suppliesSlice";
 import crewReducer from "./tables/crewSlice";
 import logsReducer from "./tables/logsSlice";
-import { useDispatch } from "react-redux";
 
 export const store = configureStore({
   reducer: {
@@ -14,9 +14,9 @@ export const store = configureStore({
   },
 });
 
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
+// Typed hooks for Redux
 export type RootState = ReturnType<typeof store.getState>;
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch;
+
+export const useAppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

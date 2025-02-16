@@ -1,50 +1,87 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Platform, useColorScheme } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
-import { addInventory } from '@/store/tables/inventorySlice'; // Assuming the thunk is in the "thunks" file.
-import { useAppDispatch } from '@/store/';
-import type { InventoryData } from '@/types/tables';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Dropdown } from 'react-native-paper-dropdown';
+import { useDispatch, useSelector } from 'react-redux';
+import { addInventory } from '@/store/tables/inventorySlice';
+import { useAppDispatch } from '@/store';
+import type { AppDispatch, RootState } from '@/store';
+import type { InventoryData, SuppliesData, EntityState } from '@/types/tables';
+import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 
-const Create = ({
-  setVisible, // Function passed as a prop to update modal visibility
-  setId, // Function passed as a prop to set the id after saving
-}: {
-  setVisible: (visible: boolean) => void;
+type CreateProps = {
+  toggleModal: () => void;
   setId: (id: number) => void;
-}) => {
-  // Initialize the state for all fields in one object
+};
+
+const Create = ({ toggleModal, setId }: CreateProps) => {
   const [formData, setFormData] = useState<InventoryData>({
     supply_id: 0,
     quantity: 0,
     expiry_date: '',
   });
 
-  const dispatch = useAppDispatch();
+  const supplies: EntityState<SuppliesData> = useSelector(
+    (state: RootState) => state.supplies
+  );
 
-  // Handler to update form data dynamically
-  const handleTextChange = (field: keyof InventoryData, value: string) => {
+  const supplyValue = formData.supply_id ? formData.supply_id.toString() : '';
+
+  const supplyOptions = supplies.current?.data
+    ? supplies.current.data.map((item: SuppliesData) => ({
+        label: item.item,
+        value: item.id.toString(),
+      }))
+    : [];
+
+  const dispatch: AppDispatch = useAppDispatch();
+
+  const fetchSupplies = () => {
+    dispatch(
+      retrieveSupplies({
+        itemsPerPage: 10,
+        page: 1,
+        keywords: '',
+      })
+    ).catch((err) => console.error('Error fetching inventory:', err));
+  };
+
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const isDarkMode = useColorScheme() === 'dark';
+
+  const toggleDatePicker = () => {
+    setDatePickerVisibility((oldValue) => !oldValue);
+  };
+
+  const handleTextChange = (field: keyof InventoryData, value: string | number) => {
     setFormData((prevData) => ({
       ...prevData,
       [field]: value,
     }));
   };
 
-  // Array of field configurations
-  const fields = [
-    { label: 'Supply ID', key: 'supply_id', isNumeric: true },
-    { label: 'Quantity', key: 'quantity', isNumeric: true },
-    { label: 'Expiry Date', key: 'expiry_date', isNumeric: false },
-  ];
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (selectedDate) {
+      setFormData((prevData) => ({
+        ...prevData,
+        expiry_date: selectedDate.toISOString(),
+      }));
+    }
+    setDatePickerVisibility(false);
+  };
 
   const handleSave = () => {
-    // Dispatch the Redux action to add the new inventory item
-    dispatch(addInventory(formData)).unwrap()
+    if (!formData.supply_id || !formData.quantity || !formData.expiry_date) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
+    dispatch(addInventory(formData))
+      .unwrap()
       .then((id: number) => {
-        console.log('Inventory added with id:', id);
-        // Call setId to update the id in the parent component
         setId(id);
-        // Close the modal after successful save
-        setVisible(false);
+        toggleModal();
       })
       .catch((error: any) => {
         console.error('Error adding inventory:', error);
@@ -52,33 +89,58 @@ const Create = ({
   };
 
   const handleCancel = () => {
-    // Close the modal without saving
-    setVisible(false);
+    toggleModal();
     setFormData({
       supply_id: 0,
       quantity: 0,
       expiry_date: '',
-    })
+    });
   };
+
+  useEffect(() => {
+    fetchSupplies();
+  }, []);
 
   return (
     <View style={{ padding: 20, gap: 10 }}>
-      {fields.map(({ label, key, isNumeric }) => (
-        <TextInput
-          key={key}
-          label={label}
-          mode="outlined"
-          keyboardType={isNumeric ? 'numeric' : 'default'}
-          value={(formData[key as keyof InventoryData] ?? '').toString()}
-          onChangeText={(value) => handleTextChange(key as keyof InventoryData, value)}
-        />
-      ))}
+      {/* Supply ID Dropdown */}
+      <Dropdown
+        label="Supply"
+        placeholder="Select Supply"
+        options={supplyOptions}
+        value={supplyValue} // Always a string
+        onSelect={(value) => handleTextChange('supply_id', Number(value))}
+      />
 
-      {/* Save Button */}
-      <Button mode="contained" onPress={handleSave} buttonColor='lightgreen'>
+      {/* Quantity */}
+      <TextInput
+        label="Quantity"
+        mode="outlined"
+        keyboardType="numeric"
+        value={(formData.quantity ?? '').toString()}
+        onChangeText={(value) => handleTextChange('quantity', Number(value))}
+      />
+
+      {/* Date Picker Button */}
+      <Button mode="contained" onPress={toggleDatePicker} buttonColor={formData.expiry_date ? 'lightblue' : 'red'}>
+        {formData.expiry_date ? `Expiry Date: ${new Date(formData.expiry_date).toLocaleDateString()}` : 'Select Expiry Date'}
+      </Button>
+
+      {/* Date Picker (Opens on button press) */}
+      {isDatePickerVisible && (
+        <DateTimePicker
+          value={formData.expiry_date ? new Date(formData.expiry_date) : new Date()}
+          mode="date"
+          display={Platform.OS === 'android' && isDarkMode ? 'spinner' : 'calendar'}
+          onChange={handleDateChange}
+        />
+      )}
+
+      {/* Save & Cancel Buttons */}
+      <Button mode="contained" onPress={handleSave} buttonColor="lightgreen">
         Save
       </Button>
-      <Button mode="outlined" onPress={handleCancel} buttonColor='lightred'>
+      <Button mode="outlined" onPress={handleCancel}>
         Cancel
       </Button>
     </View>

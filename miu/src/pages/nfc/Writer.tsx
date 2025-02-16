@@ -1,22 +1,48 @@
-import React, { useState } from 'react';
-import { Alert } from 'react-native';
-import { Button, Text, Surface, Modal } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { Alert, Platform } from 'react-native';
+import { Button, Surface, Modal, Text } from 'react-native-paper';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 
-import type { InventoryData } from '@/types/tables';
 import Create from './Create';  // Make sure to import Data
 
 // Initialize NFC
 NfcManager.start();
 
-const App = () => {
+const Writer = () => {
   const [writing, setWriting] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [nfcData, setNfcData] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
+  const [isNfcSupported, setIsNfcSupported] = useState(false);
 
   const toggleModal = () => setVisible(oldValue => !oldValue);
 
+  const confirmWrite = () => {
+
+    if (!nfcData) {
+      Alert.alert("Error", "Please enter a value to write to the NFC tag.");
+      return;
+    }
+
+    Alert.alert(
+      "Confirm Write",
+      "Are you sure you want to write to the NFC tag?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Write",
+          onPress: writeNfcTag,
+        },
+      ]
+    )
+  };
+
+
   const writeNfcTag = async () => {
+
     try {
       setWriting(true);
       
@@ -46,9 +72,44 @@ const App = () => {
     }
   };
 
+  // Check if NFC is supported and enabled on the device
+  
+
+  useEffect(() => {
+      const checkNfcSupport = async () => {
+        try {
+          const isSupported = await NfcManager.isSupported();
+          setIsNfcSupported(isSupported);
+        } catch (error) {
+          setError('Error checking NFC support.');
+          setIsNfcSupported(false);
+        }
+      };
+  
+      checkNfcSupport();
+  
+      return () => {
+        NfcManager.cancelTechnologyRequest();
+      };
+    }, []);
+
+  if (!isNfcSupported) {
+    return (
+      <Surface style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+        <Text variant="headlineMedium">NFC Not Supported</Text>
+        <Text style={{ marginTop: 10 }}>
+          This device does not support NFC functionality.
+        </Text>
+      </Surface>
+    );
+  }
+
   return (
     <Surface style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
       <Text variant="headlineMedium">NFC Writer</Text>
+      {writing && <Text>Writing...</Text>}
+
+      {error && <Text style={{ marginTop: 20, color: 'red' }}>{error}</Text>}
       
       {/* Button to open the modal */}
       <Button
@@ -62,7 +123,7 @@ const App = () => {
       {/* Button to write the data to the NFC tag */}
       <Button
         mode="contained"
-        onPress={writeNfcTag}
+        onPress={confirmWrite}
         disabled={writing}
         style={{
           marginTop: 20,
@@ -76,8 +137,8 @@ const App = () => {
       {/* Modal for editing data */}
       <Modal visible={visible} onDismiss={toggleModal} contentContainerStyle={{ padding: 20, margin: 20, borderRadius: 10 }}>
         <Surface style={{ padding: 20, borderRadius: 10, gap: 10 }}>
-          {/* Pass nfcData to the Data component for editing */}
-          <Create setVisible={toggleModal} setId={setNfcData} />
+          {/* Pass nfcData to the Create component for editing */}
+          <Create toggleModal={toggleModal} setId={setNfcData} />
         </Surface>
       </Modal>
       
@@ -86,4 +147,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default Writer;
