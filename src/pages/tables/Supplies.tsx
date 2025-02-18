@@ -6,71 +6,77 @@ import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 import type { RootState, AppDispatch } from '@/store';
 import type { SuppliesData, EntityState } from '@/types/tables';
 
+let searchTimeout: NodeJS.Timeout;
+
 const SuppliesTable = () => {
   const dispatch = useDispatch<AppDispatch>();
   const data: EntityState<SuppliesData> = useSelector((state: RootState) => state.supplies);
 
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [page, setPage] = useState(1);
-  const [formData, setFormData] = useState<SuppliesData>({
-    id: 0,
-    type: '',
-    item: '',
-    strength_or_volume: '',
-    route_of_use: '',
-    quantity_in_pack: 0,
-    possible_side_effects: '',
-    location: '',
-    is_deleted: false,
-    created_at: new Date().toISOString(),
-  });
 
   useEffect(() => {
     dispatch(retrieveSupplies({ keywords: search, page, itemsPerPage }));
   }, [dispatch, search, page, itemsPerPage]);
 
+  // Debounced Search
+  useEffect(() => {
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(() => {
+      setSearch(searchInput);
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchInput]);
+
   if (data.loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <ActivityIndicator size="large" color="#00E6FF" />
+        <Text style={styles.loadingText}>Loading Supplies...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
+      {/* Search Input */}
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
           placeholder="Search supplies..."
-          placeholderTextColor="#A0A0B0"
-          value={search}
-          onChangeText={setSearch}
+          placeholderTextColor="#8FA3BF"
+          value={searchInput}
+          onChangeText={setSearchInput}
         />
       </View>
-      <DataTable>
-        <DataTable.Header>
-          <DataTable.Title textStyle={styles.headerText}>Id</DataTable.Title>
+
+      {/* Data Table */}
+      <DataTable style={styles.table}>
+        <DataTable.Header style={styles.tableHeader}>
+          <DataTable.Title textStyle={styles.headerText}>ID</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Type</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Item</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Strength</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Route</DataTable.Title>
-          <DataTable.Title textStyle={styles.headerText}>Quantity</DataTable.Title>
+          <DataTable.Title textStyle={styles.headerText}>Qty</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Location</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Created</DataTable.Title>
         </DataTable.Header>
+
         {data.current.data.map((item) => (
-          <DataTable.Row key={item.id}>
-            <DataTable.Cell>{item.id}</DataTable.Cell>
-            <DataTable.Cell>{item.type}</DataTable.Cell>
-            <DataTable.Cell>{item.item}</DataTable.Cell>
-            <DataTable.Cell>{item.strength_or_volume}</DataTable.Cell>
-            <DataTable.Cell>{item.route_of_use}</DataTable.Cell>
-            <DataTable.Cell>{item.quantity_in_pack}</DataTable.Cell>
-            <DataTable.Cell>{item.location}</DataTable.Cell>
-            <DataTable.Cell>{new Date(item.created_at).toLocaleDateString()}</DataTable.Cell>
+          <DataTable.Row key={item.id} style={styles.tableRow}>
+            <DataTable.Cell textStyle={styles.cellText}>{item.id}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.type}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.item}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.strength_or_volume}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.route_of_use}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.quantity_in_pack}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.location}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{new Date(item.created_at).toLocaleDateString()}</DataTable.Cell>
           </DataTable.Row>
         ))}
       </DataTable>
@@ -82,7 +88,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#0F0F1F',
+    backgroundColor: '#0A0A1A',
   },
   centered: {
     flex: 1,
@@ -90,27 +96,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#fff',
+    color: '#E94560',
     marginTop: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   searchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#1A1A2E',
+    borderRadius: 12,
+    padding: 10,
     marginBottom: 16,
+    elevation: 5,
   },
   searchInput: {
-    flex: 1,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 8,
     fontSize: 14,
     color: '#ffffff',
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     height: 40,
+    borderBottomWidth: 1,
+    borderColor: '#E94560',
+  },
+  table: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#12122A',
+    elevation: 3,
+  },
+  tableHeader: {
+    backgroundColor: '#1E1E40',
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E94560',
+  },
+  tableRow: {
+    backgroundColor: '#171735',
+    borderBottomWidth: 1,
+    borderBottomColor: '#29294F',
+    paddingVertical: 12,
   },
   headerText: {
-    color: '#fff',
+    color: '#E94560',
     fontWeight: 'bold',
+    fontSize: 13,
+  },
+  cellText: {
+    color: '#E6E6FA',
+    fontSize: 12,
   },
 });
 
