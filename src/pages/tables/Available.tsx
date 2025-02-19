@@ -34,7 +34,7 @@ const InventoryTable = () => {
 
     if (daysToExpiry <= 0) return { borderColor: '#E94560' }; // Expired
     if (daysToExpiry <= 3) return { borderColor: '#F5A623' }; // Warning
-    return { borderColor: '#0F3460' }; // Success
+    return { borderColor: '#0F3450' }; // Success
   };
 
   const renderRow = ({ item }: { item: InventoryData }) => {
