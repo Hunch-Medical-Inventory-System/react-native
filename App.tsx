@@ -8,6 +8,7 @@ import { useColorScheme } from "react-native"; // Import useColorScheme
 // Screens
 import Home from "@/pages/Home";
 import About from "@/pages/About";
+import Chatbot from "@/pages/Chatbot"
 // Tables
 import Personal from "@/pages/tables/Personal";
 import Available from "@/pages/tables/Available";
@@ -94,6 +95,7 @@ const App = () => {
               <Drawer.Screen name="Logs" component={Logs} />
               <Drawer.Screen name="NFC Scanner" component={Reader} />
               <Drawer.Screen name="NFC Writer" component={Writer} />
+              <Drawer.Screen name="Chatbot" component={Chatbot} />
             </Drawer.Navigator>
           </NavigationContainer>
         ) : (
