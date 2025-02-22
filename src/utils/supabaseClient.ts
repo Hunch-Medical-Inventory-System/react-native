@@ -1,5 +1,7 @@
+import Constants from 'expo-constants';
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { ExtraConfig } from "@/types";
 import type { 
   DataFetchOptions,
   EntityState,
@@ -8,11 +10,10 @@ import type {
   TableMapping
 } from "@/types/tables";
 
-// Load environment variables from .env
-import * as dotenv from "dotenv";
-dotenv.config();
-const supabaseURL = process.env.SUPABASE_URL as string;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY as string;
+// Load environment variables from expo config
+const config = Constants.expoConfig?.extra as ExtraConfig;
+const supabaseURL = config.SUPABASE_URL;
+const supabaseAnonKey = config.SUPABASE_ANON_KEY;
 
 if (!supabaseURL || !supabaseAnonKey) {
   throw new Error("Supabase URL and Anon Key must be provided");
@@ -278,10 +279,7 @@ class SupabaseController {
   }
 
   constructor(apiKey: string, supabaseUrl: string) {
-    this.supabase = createClient(
-      apiKey as string,
-      supabaseUrl as string
-    );
+    this.supabase = createClient(apiKey as string, supabaseUrl as string);
   }
 }
 
