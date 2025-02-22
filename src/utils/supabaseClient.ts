@@ -279,8 +279,8 @@ class SupabaseController {
 
   constructor(apiKey: string, supabaseUrl: string) {
     this.supabase = createClient(
-      supabaseURL as string,
-      supabaseAnonKey as string
+      apiKey as string,
+      supabaseUrl as string
     );
   }
 }
