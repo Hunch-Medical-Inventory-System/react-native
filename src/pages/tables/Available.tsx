@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, FlatList, Text } from 'react-native';
 import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 'react-native-paper';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/store';
 import type { InventoryData, EntityState } from '@/types/tables';
 
 const InventoryTable = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch: AppDispatch = useAppDispatch();
   const { current, loading, error }: EntityState<InventoryData> = useSelector(
     (state: RootState) => state.inventory
   );
@@ -38,14 +39,14 @@ const InventoryTable = () => {
   };
 
   const renderRow = ({ item }: { item: InventoryData }) => {
-    const expiryStyle = getExpiryClass(item.expiry_date);
+    const expiryStyle = item.expiry_date ? getExpiryClass(item.expiry_date) : { borderColor: '#ffffff' };
     return (
       <Card style={[styles.card, expiryStyle]}>
         <Card.Content style={styles.cardContent}>
           <Title style={styles.cardTitle}>Supply ID: {item.supply_id}</Title>
           <Paragraph style={styles.cardText}>Quantity: {item.quantity}</Paragraph>
           <Paragraph style={styles.cardText}>
-            Expiry: {new Date(item.expiry_date).toLocaleDateString()}
+            Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}
           </Paragraph>
         </Card.Content>
       </Card>

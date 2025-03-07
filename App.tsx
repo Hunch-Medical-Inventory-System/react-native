@@ -26,7 +26,7 @@ import { store } from "@/store";
 import { registerTranslation, en } from 'react-native-paper-dates';
 
 // Import Supabase
-import { supabase } from '@/utils/supabaseClient'; // Import Supabase client
+import supabase from '@/utils/supabaseClient'; // Import Supabase client
 import AuthPage from "@/pages/authentication"; // Import AuthPage
 
 import { StatusBar } from 'react-native';
@@ -45,13 +45,13 @@ const App = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.client.auth.getSession();
       setIsAuthenticated(!!session); // Set authenticated state based on session
     };
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.client.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session); // Update authentication state when session changes
     });
 

@@ -2,12 +2,14 @@ import Constants from 'expo-constants';
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ExtraConfig } from "@/types";
-import type { 
+import type {
   DataFetchOptions,
   EntityState,
   ExpirableTableMapping,
   DeletableTableMapping,
-  TableMapping
+  TableMapping,
+  InteractionTableMapping,
+  ExpirableEntityState
 } from "@/types/tables";
 
 // Load environment variables from expo config
@@ -21,8 +23,21 @@ if (!supabaseURL || !supabaseAnonKey) {
 
 // C;ass to centralize functions dealing with supabase database
 class SupabaseController {
-  private supabase: SupabaseClient;
+  public client: SupabaseClient;
   private static instance: SupabaseController | null = null;
+  public isAuthenticated: boolean = false;
+
+  constructor(apiKey: string, supabaseUrl: string) {
+    this.client = createClient(apiKey as string, supabaseUrl as string);
+    this.checkSession();
+  }
+
+  checkSession = async () => {
+    const {
+      data: { session },
+    } = await this.client.auth.getSession();
+    this.isAuthenticated = !!session; // Set authenticated based on session
+  };
 
   /**
    * Handles the response from a Supabase query.
@@ -59,7 +74,7 @@ class SupabaseController {
     id: number
   ): Promise<TableMapping[T] | null> => {
     try {
-      const response = await this.supabase
+      const response = await this.client
         .from(table)
         .select("*")
         .eq("id", id)
@@ -93,7 +108,7 @@ class SupabaseController {
     const endRange = options.itemsPerPage * options.page - 1;
 
     try {
-      const query = this.supabase
+      const query = this.client
         .from<T, any>(table)
         .select("*", { count: "exact" });
       filters(query);
@@ -135,12 +150,12 @@ class SupabaseController {
   >(
     table: T,
     options: DataFetchOptions
-  ): Promise<EntityState<ExpirableTableMapping[T]>> => {
-    const data: EntityState<ExpirableTableMapping[T]> = {
+  ): Promise<ExpirableEntityState<ExpirableTableMapping[T]>> => {
+    const data: ExpirableEntityState<ExpirableTableMapping[T]> = {
       loading: true,
       error: null,
       current: { data: [], count: 0 },
-      deleted: { data: [], count: 0 },
+      personal: { data: [], count: 0 },
       expired: { data: [], count: 0 },
     };
 
@@ -149,7 +164,7 @@ class SupabaseController {
         query.is("user_id", null).gte("expiry_date", new Date().toISOString())
       );
 
-      data.deleted = await this.fetchTableData(table, options, (query) =>
+      data.personal = await this.fetchTableData(table, options, (query) =>
         query.not("user_id", "is", null)
       );
 
@@ -248,12 +263,53 @@ class SupabaseController {
     }
   };
 
-  public supabaseFunctions = [
-    this.readExpirableDataFromTable,
-    this.readDeletableDataFromTable,
-    this.readDataFromTable,
-    this.readRowFromTable
-  ]
+  public AddRowInTable = async <T extends keyof TableMapping>(
+    table: T,
+    data: InteractionTableMapping[T]
+  ): Promise<number | string> => {
+    // Promise will resolve to either number (id) or string (error message)
+    try {
+      console.log("Data being inserted:", data);
+      const response = await this.client.from(table).insert(data).select(); // .select() to fetch inserted data
+
+      console.log("Insert response:", response);
+
+      if (response.error) {
+        throw new Error(response.error.message); // If there is an error, throw it
+      }
+
+      const insertedRecord = response.data
+        ? (response.data[0] as { id: number })
+        : null; // Get the first inserted record
+      if (!insertedRecord) {
+        throw new Error("No data returned from insert operation");
+      }
+
+      return insertedRecord.id; // Return the id of the inserted record
+    } catch (error: any) {
+      console.error(`Error adding data to ${table}:`, error.message);
+      return error.message; // Return the error message if the insertion fails
+    }
+  };
+
+  public updateRowInTable = async <T extends keyof TableMapping>(
+    table: T,
+    id: number,
+    data: Partial<InteractionTableMapping[T]>
+  ): Promise<boolean> => {
+    try {
+      const response = await this.client.from(table).upsert(data).eq("id", id);
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error(`Error updating row in ${table}:`, error.message);
+      return false;
+    }
+  };
 
   /**
    * Returns a singleton instance of the SupabaseController class.
@@ -276,10 +332,6 @@ class SupabaseController {
       );
     }
     return SupabaseController.instance;
-  }
-
-  constructor(apiKey: string, supabaseUrl: string) {
-    this.supabase = createClient(apiKey as string, supabaseUrl as string);
   }
 }
 

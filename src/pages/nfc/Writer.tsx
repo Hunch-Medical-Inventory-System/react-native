@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Platform, ScrollView } from 'react-native';
+import { Alert } from 'react-native';
 import { Button, Surface, Modal, Text } from 'react-native-paper';
 import { Dropdown } from 'react-native-paper-dropdown';
 import Create from './Create';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
 
-import type { InventoryData, EntityState } from '@/types/tables';
+import type { InventoryData } from '@/types/tables';
 import type { RootState, AppDispatch } from '@/store';
 
 // Initialize NFC
@@ -24,7 +24,7 @@ const Writer = () => {
 
   const toggleModal = () => setVisible(oldValue => !oldValue);
 
-  const dispatch = useAppDispatch();
+  const dispatch: AppDispatch = useAppDispatch();
   const { current, loading, error: inventoryError } = useSelector(
     (state: RootState) => state.inventory
   );
@@ -66,10 +66,10 @@ const Writer = () => {
 
     try {
       setWriting(true);
-      
+
       // Request NFC writing capability
       await NfcManager.requestTechnology(NfcTech.Ndef);
-      
+
       // Convert object to JSON string
       const jsonString = JSON.stringify(nfcData);
 
@@ -94,7 +94,7 @@ const Writer = () => {
   };
 
   // Check if NFC is supported and enabled on the device
-  
+
 
   useEffect(() => {
       const checkNfcSupport = async () => {
@@ -106,9 +106,9 @@ const Writer = () => {
           setIsNfcSupported(false);
         }
       };
-  
+
       checkNfcSupport();
-  
+
       return () => {
         NfcManager.cancelTechnologyRequest();
       };
@@ -126,13 +126,13 @@ const Writer = () => {
   }
 
   return (
-    <Surface style={{ 
-      flex: 1, 
+    <Surface style={{
+      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       // flexWrap: 'wrap',
-      justifyContent: 'center', 
-      alignItems: 'center', 
+      justifyContent: 'center',
+      alignItems: 'center',
       padding: 20 ,
       gap: 10
     }}>
@@ -141,7 +141,7 @@ const Writer = () => {
       {writing && <Text style={{ marginTop: 20 }}>Writing to NFC...</Text>}
 
       {error && <Text style={{ marginTop: 20, color: 'red' }}>{error}</Text>}
-      
+
       {/* Button to open the modal */}
       <Button
         mode="outlined"
@@ -149,7 +149,7 @@ const Writer = () => {
         style={{ marginTop: 20, width: '80%' }}
       >
         Edit Data
-      </Button>     
+      </Button>
 
       {/* Dropdown to select existing data to rewrite in case of tag damage*/}
       <Surface style={{ width: '80%'}}>
@@ -160,10 +160,10 @@ const Writer = () => {
           onSelect={(value?: string) => setNfcData(value ? Number(value) : 0)}
           options={current.data.map((item: InventoryData) => ({ label: item.id ? item.id.toString() : '', value: item.id ? item.id.toString() : '' }))}
           />
-      </Surface> 
+      </Surface>
 
       {!nfcData && <Text style={{ marginTop: 20, color: 'red' }}>Please enter item info to write to the NFC tag.</Text>}
-      
+
       {/* Button to write the data to the NFC tag */}
       <Button
         mode="contained"

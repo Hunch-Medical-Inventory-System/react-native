@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { readExpirableDataFromTable, AddRowInTable, readRowFromTable, updateRowInTable } from "@/utils/supabaseClient";
-import type { DataFetchOptions, EntityState, InventoryData } from "@/types/tables";
+import supabaseController from "@/utils/supabaseClient";
+import type { DataFetchOptions, ExpirableEntityState, InventoryData, MiniInventoryData } from "@/types/tables";
 
-const initialState: EntityState<InventoryData> = {
+const initialState: ExpirableEntityState<InventoryData> = {
   loading: true,
   error: null,
   current: { data: [], count: 0 },
-  deleted: { data: [], count: 0 },
+  personal: { data: [], count: 0 },
   expired: { data: [], count: 0 },
 };
 
@@ -23,12 +23,12 @@ const inventorySlice = createSlice({
         state.loading = false;
         state.error = action.payload.error;
         state.current = action.payload.current;
-        state.deleted = action.payload.deleted;
+        state.personal = action.payload.personal;
         state.expired = action.payload.expired;
       })
       .addCase(retrieveInventory.rejected, (state) => {
         state.loading = false;
-      });   
+      });
   },
 });
 
@@ -37,16 +37,16 @@ export const retrieveInventory = createAsyncThunk(
   "inventory/retrieveInventory",
   async (options: DataFetchOptions) => {
 
-    const data = await readExpirableDataFromTable("inventory", options);
+    const data = await supabaseController.readExpirableDataFromTable("inventory", options);
     return data;
-    
+
   }
 );
 
 export const fetchInventoryData = createAsyncThunk(
   "inventory/fetchData",
   async (id: number) => {
-    const data = await readRowFromTable<"inventory">("inventory", id); // Replace "inventory" with your actual table name
+    const data = await supabaseController.readRowFromTable<"inventory">("inventory", id); // Replace "inventory" with your actual table name
     if (!data) {
       throw new Error("Inventory data not found");
     }
@@ -58,15 +58,15 @@ export const addInventory = createAsyncThunk<
   // Return type of the fulfilled action (ID of the new item)
   number,
   // Argument type (InventoryData)
-  InventoryData,
+  MiniInventoryData,
   {
     rejectValue: string; // Reject type for error messages
   }
 >(
   "inventory/addInventory",
-  async (newItem: InventoryData, { rejectWithValue }) => {
+  async (newItem: MiniInventoryData, { rejectWithValue }) => {
     try {
-      const result = await AddRowInTable("inventory", newItem);
+      const result = await supabaseController.AddRowInTable("inventory", newItem);
 
       if (typeof result === "string") {
         // If it's a string (error), reject the promise with the error message
@@ -91,7 +91,7 @@ export const updateInventory = createAsyncThunk<
   async ({ id, data }, { rejectWithValue }) => {
     try {
       // Call the update function from supabaseClient
-      const result = await updateRowInTable("inventory", id, data);
+      const result = await supabaseController.updateRowInTable("inventory", id, data);
       if (!result) {
         throw new Error("Failed to update the inventory data.");
       }

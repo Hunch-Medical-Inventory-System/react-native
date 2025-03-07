@@ -43,7 +43,7 @@ const EditData = ({ toggleModal, currentId }: Props) => {
 
   const supplyOptions = supplies.current?.data
     ? supplies.current.data.map((item: SuppliesData) => ({
-        label: item.item,
+        label: item.name,
         value: item.id.toString(),
       }))
     : [];

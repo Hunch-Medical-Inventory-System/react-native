@@ -3,11 +3,11 @@ import { View, Platform, useColorScheme } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Dropdown } from 'react-native-paper-dropdown';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { addInventory } from '@/store/tables/inventorySlice';
 import { useAppDispatch } from '@/store';
 import type { AppDispatch, RootState } from '@/store';
-import type { InventoryData, SuppliesData, EntityState } from '@/types/tables';
+import type { MiniInventoryData, SuppliesData, EntityState } from '@/types/tables';
 import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 
 type CreateProps = {
@@ -16,7 +16,7 @@ type CreateProps = {
 };
 
 const Create = ({ toggleModal, setId }: CreateProps) => {
-  const [formData, setFormData] = useState<InventoryData>({
+  const [formData, setFormData] = useState<MiniInventoryData>({
     supply_id: 0,
     quantity: 0,
     expiry_date: '',
@@ -30,7 +30,7 @@ const Create = ({ toggleModal, setId }: CreateProps) => {
 
   const supplyOptions = supplies.current?.data
     ? supplies.current.data.map((item: SuppliesData) => ({
-        label: item.item,
+        label: item.name,
         value: item.id.toString(),
       }))
     : [];
@@ -54,7 +54,7 @@ const Create = ({ toggleModal, setId }: CreateProps) => {
     setDatePickerVisibility((oldValue) => !oldValue);
   };
 
-  const handleTextChange = (field: keyof InventoryData, value: string | number) => {
+  const handleTextChange = (field: keyof MiniInventoryData, value: string | number) => {
     setFormData((prevData) => ({
       ...prevData,
       [field]: value,

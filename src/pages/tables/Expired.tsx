@@ -1,14 +1,15 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Button, Text, Chip, Card, Surface } from 'react-native-paper';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/store';
-import type { EntityState, InventoryData, SuppliesData } from '@/types/tables';
+import type { EntityState, ExpirableEntityState, InventoryData, SuppliesData } from '@/types/tables';
 
 const Expired = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const inventoryData: EntityState<InventoryData> = useSelector((state: RootState) => state.inventory);
+  const dispatch: AppDispatch = useAppDispatch();
+  const inventoryData: ExpirableEntityState<InventoryData> = useSelector((state: RootState) => state.inventory);
   const suppliesData: EntityState<SuppliesData> = useSelector((state: RootState) => state.supplies);
 
   useEffect(() => {
@@ -21,10 +22,10 @@ const Expired = () => {
     return (
       <Card style={styles.card} key={item.id}>
         <Card.Content>
-          <Text style={styles.cardTitle}>{supply?.item || 'Unknown Supply'}</Text>
+          <Text style={styles.cardTitle}>{supply?.name || 'Unknown Supply'}</Text>
           <Text style={styles.cardText}>Quantity: {item.quantity}</Text>
           <Text style={styles.cardText}>
-            Expiry Date: <Chip style={styles.chip}>{new Date(item.expiry_date).toLocaleDateString()}</Chip>
+            Expiry Date: <Chip style={styles.chip}>{item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}</Chip>
           </Text>
         </Card.Content>
         <Card.Actions>
@@ -53,12 +54,12 @@ const Expired = () => {
 
   return (
     <ScrollView style={styles.background}>
-      <Surface style={styles.container}>
+      <View style={styles.container}>
         <Text style={styles.header}>Expired Inventory</Text>
         <View style={styles.cardContainer}>
           {inventoryData.expired.data.map((item) => renderRow(item))}
         </View>
-      </Surface>
+      </View>
     </ScrollView>
   );
 };

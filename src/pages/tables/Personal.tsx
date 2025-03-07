@@ -1,22 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, FlatList, Text } from 'react-native';
+import { StyleSheet, View, FlatList } from 'react-native';
 import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 'react-native-paper';
-import { supabase } from '@/utils/supabaseClient';
-
-interface InventoryItem {
-  id: number;
-  supply_id: string;
-  created_at: string;
-  expiry_date: string;
-  crew_member: string;
-  is_deleted: boolean;
-}
+import supabaseController from '@/utils/supabaseClient';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/store';
+import { retrieveInventory } from '@/store/tables/inventorySlice';
+import { retrieveSupplies } from '@/store/tables/suppliesSlice';
+import type { RootState, AppDispatch } from '@/store';
+import type { InventoryData, SuppliesData, EntityState, ExpirableEntityState } from '@/types/tables';
 
 const InventoryProfile = () => {
+
+  const dispatch: AppDispatch = useAppDispatch();
+  const inventory: ExpirableEntityState<InventoryData> = useSelector((state: RootState) => state.inventory);
+  const supplies: EntityState<SuppliesData> = useSelector((state: RootState) => state.supplies);
+
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [serverItems, setServerItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+
+  const loadInventory = () => {
+    dispatch(retrieveInventory({ itemsPerPage, page, keywords: search }));
+  };
+
+  useEffect(() => {
+    dispatch(retrieveInventory({ itemsPerPage: 10, page: 1, keywords: '' }));
+    dispatch(retrieveSupplies({ itemsPerPage: 100, page: 1, keywords: '' }));
+  }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(retrieveInventory({ itemsPerPage, page, keywords: search }));
+  }, [itemsPerPage, page, search]);
+
+  // const [serverItems, setServerItems] = useState<InventoryItem[]>([]);
+  // const [loading, setLoading] = useState(true);
 
   const getExpiryClass = (expDate: string) => {
     const today = new Date();
@@ -29,38 +46,15 @@ const InventoryProfile = () => {
     return { borderColor: '#ffffff' }; // Normal
   };
 
-  const loadItems = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.from('inventory').select('*').range(0, itemsPerPage - 1);
-
-      if (error) {
-        console.error('Error fetching data:', error);
-        setServerItems([]);
-      } else {
-        setServerItems(data as InventoryItem[]);
-      }
-    } catch (err) {
-      console.error('Unexpected error:', err);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    loadItems();
-  }, [search, itemsPerPage]);
-
-  const renderRow = ({ item }: { item: InventoryItem }) => {
-    const expiryStyle = getExpiryClass(item.expiry_date);
+  const renderRow = ({ item }: { item: InventoryData }) => {
+    const expiryStyle = item.expiry_date ? getExpiryClass(item.expiry_date) : { borderColor: '#ffffff' };
 
     return (
       <Card style={[styles.card, expiryStyle]}>
         <Card.Content style={styles.cardContent}>
           <Title style={styles.cardTitle}>Supply ID: {item.supply_id}</Title>
           <Paragraph style={styles.cardText}>Added: {new Date(item.created_at).toLocaleDateString()}</Paragraph>
-          <Paragraph style={styles.cardText}>Expiry: {new Date(item.expiry_date).toLocaleDateString()}</Paragraph>
-          <Paragraph style={styles.cardText}>Crew: {item.crew_member}</Paragraph>
-          <Paragraph style={styles.cardText}>Status: {item.is_deleted ? 'Deleted' : 'Active'}</Paragraph>
+          <Paragraph style={styles.cardText}>Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}</Paragraph>
         </Card.Content>
       </Card>
     );
@@ -70,7 +64,7 @@ const InventoryProfile = () => {
     <View style={styles.background}>
       <Appbar.Header style={styles.appBar}>
         <Appbar.Content title="Inventory Profile" titleStyle={styles.appBarTitle} />
-        <Appbar.Action icon="refresh" onPress={loadItems} />
+        <Appbar.Action icon="refresh" onPress={loadInventory} />
       </Appbar.Header>
 
       <View style={styles.container}>
@@ -83,13 +77,13 @@ const InventoryProfile = () => {
           placeholder="Search by supply ID or crew member"
         />
 
-        {loading ? (
+        {inventory.loading ? (
           <ActivityIndicator animating={true} size="large" style={styles.loader} />
         ) : (
           <FlatList
-            data={serverItems}
+            data={inventory.personal.data}
             renderItem={renderRow}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item) => item.id!.toString()}
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContainer}

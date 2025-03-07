@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Animated } from 'react-native';
 import { Surface, TextInput, Button, Text } from 'react-native-paper';
-import { supabase } from '@/utils/supabaseClient';
+import supabase from '@/utils/supabaseClient';
 
 type AuthPageProps = {
   onAuthSuccess: () => void;
@@ -36,7 +36,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.client.auth.signInWithPassword({ email, password });
       if (error) throw error;
       onAuthSuccess();
     } catch (error: any) {
@@ -50,7 +50,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.client.auth.signUp({ email, password });
       if (error) throw error;
       onAuthSuccess();
     } catch (error: any) {

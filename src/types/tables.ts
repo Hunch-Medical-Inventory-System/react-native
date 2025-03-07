@@ -4,14 +4,23 @@ export type DataFetchOptions = {
   keywords: string;
 };
 
+export type ExpirableInteractionTableMapping = {
+  inventory: MiniInventoryData;
+};
+export type DeletableInteractionTableMapping = {
+  supplies: SuppliesData;
+}
+export type InteractionTableMapping = {
+  crew: CrewData;
+  logs: LogsData;
+} & ExpirableInteractionTableMapping & DeletableInteractionTableMapping;
+
 export type ExpirableTableMapping = {
   inventory: InventoryData;
 };
-
 export type DeletableTableMapping = {
   supplies: SuppliesData;
 };
-
 export type TableMapping = {
   crew: CrewData;
   logs: LogsData;
@@ -21,22 +30,27 @@ export type EntityState<T> = {
   loading: boolean;
   error: string | null;
   current: { data: T[]; count: number };
-  deleted?: { data: T[]; count: number };
-  expired?: { data: T[]; count: number };
+};
+export type ExpirableEntityState<T> = EntityState<T> & {
+  personal: { data: T[]; count: number };
+  expired: { data: T[]; count: number };
 };
 
-export type InventoryData = {
-  id?: number;
+export type MiniInventoryData = {
   supply_id: number;
   quantity: number;
-  created_at?: string;
-  expiry_date: string;
+  expiry_date?: string;
+};
+
+export type InventoryData = MiniInventoryData & {
+  id: number;
+  created_at: string;
   user_id?: number;
 };
 export type SuppliesData = {
   id: number;
   type: string;
-  item: string;
+  name: string;
   strength_or_volume: string;
   route_of_use: string;
   quantity_in_pack: number;
@@ -45,14 +59,12 @@ export type SuppliesData = {
   created_at: string;
   is_deleted: boolean;
 };
-
 export type CrewData = {
   id: number;
   first_name: string;
   last_name: string;
   created_at: string;
 };
-
 export type LogsData = {
   id: number;
   created_at: string;

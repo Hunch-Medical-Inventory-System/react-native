@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { readDeletableDataFromTable } from "@/utils/supabaseClient";
+import supabaseController from "@/utils/supabaseClient";
 import type {
   DataFetchOptions,
   EntityState,
@@ -10,7 +10,7 @@ import type {
 export const retrieveSupplies = createAsyncThunk(
   "supplies/retrieveSupplies",
   async (options: DataFetchOptions) => {
-    const data = await readDeletableDataFromTable("supplies", options);
+    const data = await supabaseController.readDeletableDataFromTable("supplies", options);
     return data;
   }
 );
