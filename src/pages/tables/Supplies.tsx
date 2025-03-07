@@ -59,7 +59,7 @@ const SuppliesTable = () => {
         <DataTable.Header style={styles.tableHeader}>
           <DataTable.Title textStyle={styles.headerText}>ID</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Type</DataTable.Title>
-          <DataTable.Title textStyle={styles.headerText}>Item</DataTable.Title>
+          <DataTable.Title textStyle={styles.headerText}>Name</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Strength</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Route</DataTable.Title>
           <DataTable.Title textStyle={styles.headerText}>Qty</DataTable.Title>
@@ -71,7 +71,7 @@ const SuppliesTable = () => {
           <DataTable.Row key={item.id} style={styles.tableRow}>
             <DataTable.Cell textStyle={styles.cellText}>{item.id}</DataTable.Cell>
             <DataTable.Cell textStyle={styles.cellText}>{item.type}</DataTable.Cell>
-            <DataTable.Cell textStyle={styles.cellText}>{item.item}</DataTable.Cell>
+            <DataTable.Cell textStyle={styles.cellText}>{item.name}</DataTable.Cell>
             <DataTable.Cell textStyle={styles.cellText}>{item.strength_or_volume}</DataTable.Cell>
             <DataTable.Cell textStyle={styles.cellText}>{item.route_of_use}</DataTable.Cell>
             <DataTable.Cell textStyle={styles.cellText}>{item.quantity_in_pack}</DataTable.Cell>
