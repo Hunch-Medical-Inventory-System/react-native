@@ -1,53 +1,57 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, FlatList, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, FlatList } from 'react-native';
 import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 'react-native-paper';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
+import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 import type { RootState, AppDispatch } from '@/store';
-import type { InventoryData, EntityState } from '@/types/tables';
+import type { InventoryData, SuppliesData, EntityState, ExpirableEntityState } from '@/types/tables';
 
-const InventoryTable = () => {
+const InventoryProfile = () => {
+
   const dispatch: AppDispatch = useAppDispatch();
-  const { current, loading, error }: EntityState<InventoryData> = useSelector(
-    (state: RootState) => state.inventory
-  );
+  const inventory: ExpirableEntityState<InventoryData> = useSelector((state: RootState) => state.inventory);
+  const supplies: EntityState<SuppliesData> = useSelector((state: RootState) => state.supplies);
+
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchInventory();
-  }, [search]);
-
-  const fetchInventory = () => {
-    dispatch(
-      retrieveInventory({
-        itemsPerPage: 10,
-        page: 1,
-        keywords: search,
-      })
-    ).catch((err) => console.error('Error fetching inventory:', err));
+  const loadInventory = () => {
+    dispatch(retrieveInventory({ itemsPerPage, page, keywords: search }));
   };
 
-  const getExpiryClass = (expiryDate: string) => {
-    const today = new Date();
-    const expiry = new Date(expiryDate);
-    const daysToExpiry = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  useEffect(() => {
+    dispatch(retrieveInventory({ itemsPerPage: 10, page: 1, keywords: '' }));
+    dispatch(retrieveSupplies({ itemsPerPage: 100, page: 1, keywords: '' }));
+  }, [dispatch]);
 
-    if (daysToExpiry <= 0) return { borderColor: '#E94560' }; // Expired
-    if (daysToExpiry <= 3) return { borderColor: '#F5A623' }; // Warning
-    return { borderColor: '#0F3450' }; // Success
+  useEffect(() => {
+    dispatch(retrieveInventory({ itemsPerPage, page, keywords: search }));
+  }, [itemsPerPage, page, search]);
+
+  const getExpiryClass = (expDate: string) => {
+    const today = new Date();
+    const expiry = new Date(expDate);
+    const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 0) return { borderColor: '#FF6B6B' }; // Expired
+    if (diffDays <= 7) return { borderColor: '#FFD93D' }; // About to expire
+    if (diffDays <= 30) return { borderColor: '#6BCB77' }; // Expiring soon
+    return { borderColor: '#ffffff' }; // Normal
   };
 
   const renderRow = ({ item }: { item: InventoryData }) => {
     const expiryStyle = item.expiry_date ? getExpiryClass(item.expiry_date) : { borderColor: '#ffffff' };
+
     return (
       <Card style={[styles.card, expiryStyle]}>
         <Card.Content style={styles.cardContent}>
-          <Title style={styles.cardTitle}>Supply ID: {item.supply_id}</Title>
+          <Title style={styles.cardTitle}>{supplies.current.data.find((supply) => supply.id === item.supply_id)?.name}</Title>
           <Paragraph style={styles.cardText}>Quantity: {item.quantity}</Paragraph>
-          <Paragraph style={styles.cardText}>
-            Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}
-          </Paragraph>
+          <Paragraph style={styles.cardText}>Added: {new Date(item.created_at).toLocaleDateString()}</Paragraph>
+          <Paragraph style={styles.cardText}>Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}</Paragraph>
         </Card.Content>
       </Card>
     );
@@ -56,8 +60,8 @@ const InventoryTable = () => {
   return (
     <View style={styles.background}>
       <Appbar.Header style={styles.appBar}>
-        <Appbar.Content title="Inventory Table" titleStyle={styles.appBarTitle} />
-        <Appbar.Action icon="refresh" onPress={fetchInventory} />
+        <Appbar.Content title="Inventory Profile" titleStyle={styles.appBarTitle} />
+        <Appbar.Action icon="refresh" onPress={loadInventory} />
       </Appbar.Header>
 
       <View style={styles.container}>
@@ -67,30 +71,20 @@ const InventoryTable = () => {
           value={search}
           onChangeText={setSearch}
           style={styles.searchInput}
-          placeholder="Search by supply ID or card ID"
-          placeholderTextColor="#A0A0B0"
-          theme={{ colors: { text: '#ffffff', primary: '#E94560' } }}
+          placeholder="Search by supply ID or crew member"
         />
 
-        {loading ? (
-          <ActivityIndicator animating={true} size="large" style={styles.loader} color="#E94560" />
-        ) : error ? (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Error loading inventory: {error}</Text>
-          </View>
-        ) : current?.data && current.data.length > 0 ? (
+        {inventory.loading ? (
+          <ActivityIndicator animating={true} size="large" style={styles.loader} />
+        ) : (
           <FlatList
-            data={current.data}
+            data={inventory.current.data}
             renderItem={renderRow}
-            keyExtractor={(item) => (item.id ?? '').toString()}
+            keyExtractor={(item) => item.id!.toString()}
             numColumns={2}
             columnWrapperStyle={styles.columnWrapper}
             contentContainerStyle={styles.listContainer}
           />
-        ) : (
-          <View style={styles.noDataContainer}>
-            <Text style={styles.noDataText}>No data available</Text>
-          </View>
         )}
       </View>
     </View>
@@ -156,26 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#A0A0B0',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 18,
-    marginBottom: 16,
-    color: '#E94560',
-  },
-  noDataContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noDataText: {
-    fontSize: 18,
-    marginBottom: 16,
-    color: '#A0A0B0',
-  },
 });
 
-export default InventoryTable;
+export default InventoryProfile;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, FlatList } from 'react-native';
 import { Appbar, TextInput, ActivityIndicator, Card, Title, Paragraph } from 'react-native-paper';
-import supabaseController from '@/utils/supabaseClient';
 import { useSelector } from 'react-redux';
 import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
@@ -32,27 +31,13 @@ const InventoryProfile = () => {
     dispatch(retrieveInventory({ itemsPerPage, page, keywords: search }));
   }, [itemsPerPage, page, search]);
 
-  // const [serverItems, setServerItems] = useState<InventoryItem[]>([]);
-  // const [loading, setLoading] = useState(true);
-
-  const getExpiryClass = (expDate: string) => {
-    const today = new Date();
-    const expiry = new Date(expDate);
-    const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 0) return { borderColor: '#FF6B6B' }; // Expired
-    if (diffDays <= 7) return { borderColor: '#FFD93D' }; // About to expire
-    if (diffDays <= 30) return { borderColor: '#6BCB77' }; // Expiring soon
-    return { borderColor: '#ffffff' }; // Normal
-  };
-
   const renderRow = ({ item }: { item: InventoryData }) => {
-    const expiryStyle = item.expiry_date ? getExpiryClass(item.expiry_date) : { borderColor: '#ffffff' };
 
     return (
-      <Card style={[styles.card, expiryStyle]}>
+      <Card style={[styles.card]}>
         <Card.Content style={styles.cardContent}>
-          <Title style={styles.cardTitle}>Supply ID: {item.supply_id}</Title>
+          <Title style={styles.cardTitle}>{supplies.current.data.find((supply) => supply.id === item.supply_id)?.name}</Title>
+          <Paragraph style={styles.cardText}>Quantity: {item.quantity}</Paragraph>
           <Paragraph style={styles.cardText}>Added: {new Date(item.created_at).toLocaleDateString()}</Paragraph>
           <Paragraph style={styles.cardText}>Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}</Paragraph>
         </Card.Content>
