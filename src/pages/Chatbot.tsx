@@ -9,60 +9,66 @@ import {
     KeyboardAvoidingView,
     Platform
 } from 'react-native';
+import { useSelector } from 'react-redux';
+import { useAppDispatch } from '@/store';
+import { chat } from '@/store/chatbotSlice';
+import type { RootState, AppDispatch } from '@/store';
 
-const App = () => {
-    const [messages, setMessages] = useState([
-        { id: '1', text: 'Hello! How can I assist you today?', sender: 'bot' }
-    ]);
-    const [input, setInput] = useState('');
+const Chatbot = () => {
 
-    const sendMessage = () => {
-        if (input.trim() === '') return;
-        setMessages((prev) => [
-            { id: Date.now().toString(), text: input, sender: 'user' },
-            ...prev
-        ]);
-        setInput('');
+    const dispatch: AppDispatch = useAppDispatch();
+    const loading = useSelector((state: RootState) => state.chatbot.loading);
+    const error = useSelector((state: RootState) => state.chatbot.error);
+    const chatLog = useSelector((state: RootState) => state.chatbot.chatLog);
+
+    const [question, setQuestion] = useState('');
+
+    const askQuestion = () => {
+        if (question.trim() === '') return;
+        dispatch(chat(question))
+        setQuestion('');
     };
 
     return (
-        <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' || 'android' ? 'padding' : 'height'}
             style={styles.container}
         >
             <FlatList
-                data={messages}
-                keyExtractor={(item) => item.id}
+                data={chatLog}
+                keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item, index }) => (
                     <View
                         style={[
                             styles.message,
-                            item.sender === 'user' ? styles.user : styles.bot,
-                            index > 0 && messages[index - 1].sender === item.sender
+                            item.type === 0 ? styles.user : styles.bot,
+                            index > 0 && chatLog[index - 1].type === item.type
                                 ? styles.stacked
                                 : null
                         ]}
                     >
-                        <Text style={styles.text}>{item.text}</Text>
+                        <Text style={styles.text}>{item.message}</Text>
                     </View>
                 )}
                 inverted
             />
+
+            {error && <Text>{error}</Text>}
 
             <View style={styles.inputContainer}>
                 <TextInput
                     style={styles.input}
                     placeholder="Type a message..."
                     placeholderTextColor="#bbb"
-                    value={input}
-                    onChangeText={setInput}
+                    value={question}
+                    onChangeText={setQuestion}
                 />
-                <TouchableOpacity 
-                    style={styles.sendButton} 
-                    onPress={sendMessage}
+                <TouchableOpacity
+                    style={styles.sendButton}
+                    onPress={askQuestion}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.sendText}>➤</Text>
+                    <Text style={styles.sendText}>➤ {loading ? '...' : 'Send'}</Text>
                 </TouchableOpacity>
             </View>
         </KeyboardAvoidingView>
@@ -85,7 +91,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
-        elevation: 3, 
+        elevation: 3,
     },
     user: {
         backgroundColor: '#E94560',
@@ -134,4 +140,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default App;
+export default Chatbot;
