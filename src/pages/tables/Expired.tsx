@@ -67,7 +67,7 @@ const Expired = () => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#0F0F1F',
+    backgroundColor: '#181818',
   },
   container: {
     padding: 16,
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0F0F1F',
+    backgroundColor: '#181818',
   },
   loadingText: {
     color: '#A0A0B0',

@@ -42,7 +42,7 @@ const Home = () => {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-    backgroundColor: '#0F0F1F',
+    backgroundColor: '#181818',
   },
   container: {
     flexGrow: 1,

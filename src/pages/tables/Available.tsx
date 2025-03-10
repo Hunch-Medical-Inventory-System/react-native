@@ -93,7 +93,7 @@ const InventoryProfile = () => {
 
 const styles = StyleSheet.create({
   appBar: {
-    backgroundColor: '#1A1A2E',
+    backgroundColor: '#181818',
     elevation: 0,
   },
   appBarTitle: {
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
-    backgroundColor: '#0F0F1F',
+    backgroundColor: '#181818',
   },
   searchInput: {
     marginBottom: 16,
