@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     marginBottom: 16,
-    backgroundColor: '#1A1A2E',
+    backgroundColor: '#181818',
     borderRadius: 8,
     fontSize: 14,
     color: '#ffffff',
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 4,
     borderWidth: 1.5,
-    backgroundColor: '#1A1A2E',
+    backgroundColor: '#181818',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
