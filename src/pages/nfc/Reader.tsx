@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { Modal, Button, Text, Surface } from 'react-native-paper';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
-import Edit from './Edit';
+import Edit from '@/components/inventory/Edit';
 
 // Initialize NFC
 NfcManager.start();

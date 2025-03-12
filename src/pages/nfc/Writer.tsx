@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { Button, Surface, Modal, Text } from 'react-native-paper';
 import { Dropdown } from 'react-native-paper-dropdown';
-import Create from './Create';
+import Create from '@/components/inventory/Create';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 
 import { useSelector } from 'react-redux';
