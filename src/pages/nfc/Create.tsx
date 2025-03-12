@@ -7,7 +7,7 @@ import { useSelector } from 'react-redux';
 import { addInventory } from '@/store/tables/inventorySlice';
 import { useAppDispatch } from '@/store';
 import type { AppDispatch, RootState } from '@/store';
-import type { MiniInventoryData, SuppliesData, EntityState } from '@/types/tables';
+import type { SuppliesData, InventoryData, EntityState } from '@/types/tables';
 import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 
 type CreateProps = {
@@ -16,7 +16,7 @@ type CreateProps = {
 };
 
 const Create = ({ toggleModal, setId }: CreateProps) => {
-  const [formData, setFormData] = useState<MiniInventoryData>({
+  const [formData, setFormData] = useState<Partial<InventoryData>>({
     supply_id: 0,
     quantity: 0,
     expiry_date: '',
@@ -54,7 +54,7 @@ const Create = ({ toggleModal, setId }: CreateProps) => {
     setDatePickerVisibility((oldValue) => !oldValue);
   };
 
-  const handleTextChange = (field: keyof MiniInventoryData, value: string | number) => {
+  const handleTextChange = (field: keyof Partial<InventoryData>, value: string | number) => {
     setFormData((prevData) => ({
       ...prevData,
       [field]: value,

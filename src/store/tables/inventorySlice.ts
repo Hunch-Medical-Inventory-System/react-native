@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import supabaseController from "@/utils/supabaseClient";
-import type { DataFetchOptions, ExpirableEntityState, InventoryData, MiniInventoryData } from "@/types/tables";
+import type { DataFetchOptions, ExpirableEntityState, InventoryData } from "@/types/tables";
 
 const initialState: ExpirableEntityState<InventoryData> = {
   loading: true,
@@ -45,8 +45,8 @@ export const retrieveInventory = createAsyncThunk(
 
 export const fetchInventoryData = createAsyncThunk(
   "inventory/fetchData",
-  async (id: number) => {
-    const data = await supabaseController.readRowFromTable<"inventory">("inventory", id); // Replace "inventory" with your actual table name
+  async (ids: number[]) => {
+    const data = await supabaseController.readRowsFromTable<"inventory">("inventory", "id", ids); // Replace "inventory" with your actual table name
     if (!data) {
       throw new Error("Inventory data not found");
     }
@@ -58,13 +58,13 @@ export const addInventory = createAsyncThunk<
   // Return type of the fulfilled action (ID of the new item)
   number,
   // Argument type (InventoryData)
-  MiniInventoryData,
+  Partial<InventoryData>,
   {
     rejectValue: string; // Reject type for error messages
   }
 >(
   "inventory/addInventory",
-  async (newItem: MiniInventoryData, { rejectWithValue }) => {
+  async (newItem: Partial<InventoryData>, { rejectWithValue }) => {
     try {
       const result = await supabaseController.AddRowInTable("inventory", newItem);
 

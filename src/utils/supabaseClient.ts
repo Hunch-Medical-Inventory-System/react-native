@@ -1,42 +1,52 @@
-import Constants from 'expo-constants';
 import { createClient, PostgrestSingleResponse } from "@supabase/supabase-js";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ExtraConfig } from "@/types";
 import type {
   DataFetchOptions,
   EntityState,
   ExpirableTableMapping,
   DeletableTableMapping,
   TableMapping,
-  InteractionTableMapping,
-  ExpirableEntityState
+  ExpirableEntityState,
 } from "@/types/tables";
 
-// Load environment variables from expo config
+// Load environment variables
+import Constants from "expo-constants";
+import type { ExtraConfig } from "@/types";
+
 const config = Constants.expoConfig?.extra as ExtraConfig;
 const supabaseURL = config.SUPABASE_URL;
 const supabaseAnonKey = config.SUPABASE_ANON_KEY;
+
 
 if (!supabaseURL || !supabaseAnonKey) {
   throw new Error("Supabase URL and Anon Key must be provided");
 }
 
-// C;ass to centralize functions dealing with supabase database
+// Class to centralize functions dealing with supabase database
 class SupabaseController {
   public client: SupabaseClient;
   private static instance: SupabaseController | null = null;
   public isAuthenticated: boolean = false;
+  public userId: string | null = null;
 
   constructor(apiKey: string, supabaseUrl: string) {
     this.client = createClient(apiKey as string, supabaseUrl as string);
     this.checkSession();
+    this.getUserId();
   }
 
-  checkSession = async () => {
+  private checkSession = async () => {
     const {
       data: { session },
     } = await this.client.auth.getSession();
     this.isAuthenticated = !!session; // Set authenticated based on session
+  };
+
+  private getUserId = async () => {
+    const {
+      data: { user },
+    } = await this.client.auth.getUser();
+    this.userId = user?.id ?? null;
   };
 
   /**
@@ -61,31 +71,34 @@ class SupabaseController {
   };
 
   /**
-   * Fetches a single row from a specified Supabase table by its ID.
+   * Reads rows from a specified table in the database.
    *
-   * @template T - The type of the table name.
-   * @param {T} table - The name of the table to fetch from, which must be a key of TableMapping.
-   * @param {number} id - The ID of the row to fetch.
-   * @returns {Promise<TableMapping[T] | null>} A promise that resolves to the row data of type TableMapping[T] if found, or null if the row does not exist or an error occurs.
-   * @throws {Error} If there is an issue with the Supabase request, it logs the error and throws an exception.
+   * @template T - The key of the table mapping.
+   * @param {T} table - The name of the table to read from.
+   * @param {string} seperator - The column name to filter by.
+   * @param {Array<any>} seperatorValue - The value to filter the column by.
+   * @param {Array<"*" | keyof TableMapping[T]>} [columns=["*"]] - The columns to select from the table. Defaults to all columns.
+   * @returns {Promise<Partial<TableMapping[T]>[]>} A promise that resolves to an array of partial rows from the table.
+   * @throws Will throw an error if the database query fails.
    */
-  public readRowFromTable = async <T extends keyof TableMapping>(
+  public readRowsFromTable = async <T extends keyof TableMapping>(
     table: T,
-    id: number
-  ): Promise<TableMapping[T] | null> => {
+    seperator: string,
+    seperatorValue: Array<any>,
+    columns: Array<"*" | keyof TableMapping[T]> = ["*"] as const
+  ): Promise<Partial<TableMapping[T]>[]> => {
     try {
       const response = await this.client
         .from(table)
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (response.error) {
-        throw new Error(response.error.message);
+        .select(columns.join(","))
+        .eq(seperator, seperatorValue.join(","));
+      if (response.error || !response.data) {
+        throw new Error(response.error?.message ?? "Unknown error");
       }
-      return response.data || null;
+      return response.data as unknown as Partial<TableMapping[T]>[];
     } catch (error: any) {
       console.error(`Error fetching row from ${table}:`, error.message);
-      return null;
+      return [];
     }
   };
 
@@ -96,13 +109,15 @@ class SupabaseController {
    * @param {T} table - The name of the table to fetch data from.
    * @param {DataFetchOptions} options - The options for data fetching, including pagination.
    * @param {(query: any) => any} filters - A function to apply filters to the query.
+   * @param {Array<"*" | keyof TableMapping[T]>} [columns=["*"]] - The columns to select.
    * @returns {Promise<{ data: any[]; count: number }>} A promise that resolves to an object containing the fetched data and the total count.
    * @throws Will throw an error if the data fetching fails.
    */
-  private fetchTableData = async <T extends string>(
+  private fetchTableData = async <T extends keyof TableMapping>(
     table: T,
     options: DataFetchOptions,
-    filters: (query: any) => any
+    filters: (query: any) => any = () => {},
+    columns: Array<"*" | keyof TableMapping[T]> = ["*"] as const
   ): Promise<{ data: any[]; count: number }> => {
     const startRange = options.itemsPerPage * (options.page - 1);
     const endRange = options.itemsPerPage * options.page - 1;
@@ -110,12 +125,12 @@ class SupabaseController {
     try {
       const query = this.client
         .from<T, any>(table)
-        .select("*", { count: "exact" });
+        .select(columns.join(","), { count: "exact" });
       filters(query);
       const response = await query
         .order("id", { ascending: true })
         .range(startRange, endRange);
-      return this.handleResponse<T>(response);
+      return this.handleResponse(response);
     } catch (error: any) {
       console.error(`Error fetching data from ${table}:`, error.message);
       throw error;
@@ -128,6 +143,7 @@ class SupabaseController {
    * @template T - The type of the table, which extends the keys of ExpirableTableMapping.
    * @param {T} table - The name of the table to read data from.
    * @param {DataFetchOptions} options - The options for fetching data.
+   * @param {Array<"*" | keyof ExpirableTableMapping[T]>} [columns=["*"]] - The columns to select.
    * @returns {Promise<EntityState<ExpirableTableMapping[T]>>} - A promise that resolves to an EntityState object containing the categorized data.
    *
    * The returned EntityState object has the following structure:
@@ -149,7 +165,8 @@ class SupabaseController {
     T extends keyof ExpirableTableMapping
   >(
     table: T,
-    options: DataFetchOptions
+    options: DataFetchOptions,
+    columns: Array<"*" | keyof ExpirableTableMapping[T]> = ["*"] as const
   ): Promise<ExpirableEntityState<ExpirableTableMapping[T]>> => {
     const data: ExpirableEntityState<ExpirableTableMapping[T]> = {
       loading: true,
@@ -160,16 +177,29 @@ class SupabaseController {
     };
 
     try {
-      data.current = await this.fetchTableData(table, options, (query) =>
-        query.is("user_id", null).gte("expiry_date", new Date().toISOString())
+      data.current = await this.fetchTableData(
+        table,
+        options,
+        (query) =>
+          query
+            .is("user_id", null)
+            .gte("expiry_date", new Date().toISOString()),
+        columns
       );
 
-      data.personal = await this.fetchTableData(table, options, (query) =>
-        query.not("user_id", "is", null)
+      data.personal = await this.fetchTableData(
+        table,
+        options,
+        (query) => query.not("user_id", "is", null),
+        columns
       );
 
-      data.expired = await this.fetchTableData(table, options, (query) =>
-        query.is("user_id", null).lt("expiry_date", new Date().toISOString())
+      data.expired = await this.fetchTableData(
+        table,
+        options,
+        (query) =>
+          query.is("user_id", null).lt("expiry_date", new Date().toISOString()),
+        columns
       );
     } catch (error: any) {
       data.error = error.message || "An error occurred";
@@ -185,6 +215,7 @@ class SupabaseController {
    * @template T - The key of the TableMapping which represents the table name.
    * @param {T} table - The name of the table to read data from.
    * @param {DataFetchOptions} options - The options to use when fetching data from the table.
+   * @param {Array<"*" | keyof DeletableTableMapping[T]>} [columns=["*"]] - The columns to select.
    * @returns {Promise<EntityState<DeletableTableMapping[T]>>} - A promise that resolves to an EntityState object containing the fetched data.
    *
    * The returned EntityState object has the following structure:
@@ -199,7 +230,8 @@ class SupabaseController {
     T extends keyof DeletableTableMapping
   >(
     table: T,
-    options: DataFetchOptions
+    options: DataFetchOptions,
+    columns: Array<"*" | keyof DeletableTableMapping[T]> = ["*"] as const
   ): Promise<EntityState<DeletableTableMapping[T]>> => {
     const data: EntityState<DeletableTableMapping[T]> = {
       loading: true,
@@ -208,7 +240,12 @@ class SupabaseController {
     };
 
     try {
-      data.current = await this.fetchTableData(table, options, () => {});
+      data.current = await this.fetchTableData(
+        table,
+        options,
+        () => {},
+        columns
+      );
     } catch (error: any) {
       data.error = error.message || "An error occurred";
     } finally {
@@ -223,6 +260,7 @@ class SupabaseController {
    * @template T - The key of the TableMapping which represents the table name.
    * @param {T} table - The name of the table to read data from.
    * @param {DataFetchOptions} options - The options to use when fetching data from the table.
+   * @param {Array<"*" | keyof TableMapping[T]>} [columns=["*"]] - The columns to select.
    * @returns {Promise<EntityState<TableMapping[T]>>} - A promise that resolves to an EntityState object containing the fetched data.
    *
    * The returned EntityState object has the following structure:
@@ -235,7 +273,8 @@ class SupabaseController {
    */
   public readDataFromTable = async <T extends keyof TableMapping>(
     table: T,
-    options: DataFetchOptions
+    options: DataFetchOptions,
+    columns: Array<"*" | keyof TableMapping[T]> = ["*"] as const
   ): Promise<EntityState<TableMapping[T]>> => {
     const data: EntityState<TableMapping[T]> = {
       loading: true,
@@ -243,18 +282,13 @@ class SupabaseController {
       current: { data: [], count: 0 },
     };
 
-    const hasCrewMemberColumn = [
-      "table_with_crew_member_1",
-      "table_with_crew_member_2",
-    ].includes(table as string);
-
     try {
-      data.current = await this.fetchTableData(table, options, (query) => {
-        if (hasCrewMemberColumn) {
-          return query.is("crew_member_id", null);
-        }
-        return query;
-      });
+      data.current = await this.fetchTableData(
+        table,
+        options,
+        () => {},
+        columns
+      );
     } catch (error: any) {
       data.error = error.message || "An error occurred";
     } finally {
@@ -263,9 +297,19 @@ class SupabaseController {
     }
   };
 
+  /**
+   * Adds a new row to the specified table in the database.
+   *
+   * @template T - The key of the table in the TableMapping.
+   * @param {T} table - The name of the table to insert the data into.
+   * @param {Partial<TableMapping[T]>} data - The data to be inserted into the table. It should be a partial object of the table's type.
+   * @returns {Promise<number | string>} - A promise that resolves to either the id of the inserted record (number) or an error message (string).
+   *
+   * @throws {Error} - Throws an error if the insertion fails or no data is returned from the insert operation.
+   */
   public AddRowInTable = async <T extends keyof TableMapping>(
     table: T,
-    data: InteractionTableMapping[T]
+    data: Partial<TableMapping[T]>
   ): Promise<number | string> => {
     // Promise will resolve to either number (id) or string (error message)
     try {
@@ -292,10 +336,21 @@ class SupabaseController {
     }
   };
 
+  /**
+   * Updates a row in the specified table with the given data.
+   *
+   * @template T - The type of the table, which must be a key of TableMapping.
+   * @param {T} table - The name of the table to update.
+   * @param {number} id - The ID of the row to update.
+   * @param {Partial<TableMapping[T]>} data - The data to update the row with.
+   * @returns {Promise<boolean>} - A promise that resolves to true if the update was successful, or false if there was an error.
+   *
+   * @throws {Error} - Throws an error if the update operation fails.
+   */
   public updateRowInTable = async <T extends keyof TableMapping>(
     table: T,
     id: number,
-    data: Partial<InteractionTableMapping[T]>
+    data: Partial<TableMapping[T]>
   ): Promise<boolean> => {
     try {
       const response = await this.client.from(table).upsert(data).eq("id", id);
@@ -307,6 +362,67 @@ class SupabaseController {
       return true;
     } catch (error: any) {
       console.error(`Error updating row in ${table}:`, error.message);
+      return false;
+    }
+  };
+
+  /**
+   * Deletes a row in the specified table by marking it as deleted.
+   *
+   * @template T - The type of the table, which extends the keys of DeletableTableMapping.
+   * @param {T} table - The name of the table from which the row should be deleted.
+   * @param {number} id - The ID of the row to be deleted.
+   * @returns {Promise<boolean>} - A promise that resolves to true if the row was successfully marked as deleted, or false if an error occurred.
+   *
+   * @throws {Error} - Throws an error if the deletion operation fails.
+   */
+  public deleteRowInTable = async <T extends keyof DeletableTableMapping>(
+    table: T,
+    id: number
+  ): Promise<boolean> => {
+    try {
+      const response = await this.client
+        .from(table)
+        .upsert({ is_deleted: true })
+        .eq("id", id);
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error(`Error deleting row in ${table}:`, error.message);
+      return false;
+    }
+  };
+
+  /**
+   * Claims a row in the specified table by updating the `user_id` field with the current user's ID.
+   *
+   * @template T - The type of the table, which extends the keys of `ExpirableTableMapping`.
+   * @param {T} table - The name of the table to update.
+   * @param {number} id - The ID of the row to claim.
+   * @returns {Promise<boolean>} - A promise that resolves to `true` if the row was successfully claimed, or `false` if an error occurred.
+   * @throws {Error} - Throws an error if the upsert operation fails.
+   */
+  public claimRowInTable = async <T extends keyof ExpirableTableMapping>(
+    table: T,
+    id: number
+  ): Promise<boolean> => {
+    try {
+      const response = await this.client
+        .from(table)
+        .upsert({ user_id: this.userId })
+        .eq("id", id);
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error(`Error deleting row in ${table}:`, error.message);
       return false;
     }
   };

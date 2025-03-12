@@ -28,9 +28,15 @@ const EditData = ({ toggleModal, currentId }: Props) => {
 
   useEffect(() => {
     if (!inventoryData) {
-      dispatch(fetchInventoryData(currentId))
+      dispatch(fetchInventoryData([currentId]))
         .unwrap()
-        .then((fetchedData) => setFormData(fetchedData))
+        .then((fetchedData: Partial<InventoryData>[]) => {
+          if (fetchedData.length > 0) {
+            setFormData(fetchedData[0] as InventoryData);
+          } else {
+            setError('No inventory data found');
+          }
+        })
         .catch((err) => setError('Error fetching inventory: ' + err));
     } else {
       setFormData(inventoryData);
