@@ -9,31 +9,23 @@ export type ExpirableTableMapping = {
 };
 export type DeletableTableMapping = {
   supplies: SuppliesData;
-};
-export type TableMapping = {
-  crew: CrewData;
   logs: LogsData;
-} & ExpirableTableMapping &
-  DeletableTableMapping;
+} & ExpirableTableMapping;
+export type TableMapping = {
+} & DeletableTableMapping;
 
 export type EntityState<T> = {
   loading: boolean;
   error: string | null;
-  current: { data: T[]; count: number };
+  active: { data: T[]; count: number };
 };
 export type ExpirableEntityState<T> = EntityState<T> & {
-  personal: { data: T[]; count: number };
   expired: { data: T[]; count: number };
 };
+export type PersonalEntityState<T> = EntityState<T> & {
+  personal: { data: T[]; count: number };
+}
 
-export type InventoryData = {
-  supply_id: number;
-  quantity: number;
-  expiry_date?: string;
-  id: number;
-  created_at: string;
-  user_id?: number;
-};
 export type SuppliesData = {
   id: number;
   type: string;
@@ -46,14 +38,19 @@ export type SuppliesData = {
   created_at: string;
   is_deleted: boolean;
 };
-export type CrewData = {
+export type InventoryData = {
   id: number;
-  first_name: string;
-  last_name: string;
+  supply_id: SuppliesData["id"];
+  quantity: number;
+  expiry_date?: string;
   created_at: string;
+  is_deleted: boolean;
 };
 export type LogsData = {
   id: number;
   created_at: string;
-  crew_member_id: number;
+  inventory_id: InventoryData["id"];
+  user_id: string;
+  quantity: number;
+  is_deleted: boolean;
 };

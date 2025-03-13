@@ -171,26 +171,18 @@ class SupabaseController {
     const data: ExpirableEntityState<ExpirableTableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
-      personal: { data: [], count: 0 },
+      active: { data: [], count: 0 },
       expired: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         (query) =>
           query
-            .is("user_id", null)
+            .is("is_deleted", false)
             .gte("expiry_date", new Date().toISOString()),
-        columns
-      );
-
-      data.personal = await this.fetchTableData(
-        table,
-        options,
-        (query) => query.not("user_id", "is", null),
         columns
       );
 
@@ -236,11 +228,11 @@ class SupabaseController {
     const data: EntityState<DeletableTableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
+      active: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         () => {},
@@ -279,11 +271,11 @@ class SupabaseController {
     const data: EntityState<TableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
+      active: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         () => {},
