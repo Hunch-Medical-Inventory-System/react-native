@@ -428,6 +428,30 @@ class SupabaseController {
   };
 
   /**
+   * Sends a message to the Gemini function and returns the response data.
+   *
+   * @param {string} message - The message to be sent to the Gemini function.
+   * @returns {Promise<any>} - A promise that resolves to the response data from the Gemini function, or false if an error occurs.
+   * @throws {Error} - Throws an error if the invocation of the Gemini function fails.
+   */
+  public chatWithGemini = async (message: string): Promise<any> => {
+    try {
+      const { data, error } = await this.client.functions.invoke('gemini', {
+        body: { question: message },
+      })
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data.message;
+    } catch (error: any) {
+      console.error("Error invoking Gemini function:", error.message);
+      return false;
+    }
+  };
+
+  /**
    * Returns a singleton instance of the SupabaseController class.
    *
    * @param {string} supabaseUrl - The URL of the Supabase instance.
