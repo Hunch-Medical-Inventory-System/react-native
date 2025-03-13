@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   tableRow: {
     backgroundColor: '#171735',
     borderBottomWidth: 1,
-    borderBottomColor: '#29294F',
+    borderBottomColor: '#e93b3b',
     paddingVertical: 12,
   },
   headerText: {
