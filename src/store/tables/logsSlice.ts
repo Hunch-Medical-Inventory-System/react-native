@@ -18,7 +18,7 @@ export const retrieveCrew = createAsyncThunk(
 const initialState: EntityState<LogsData> = {
   loading: true,
   error: null,
-  current: { data: [], count: 0 },
+  active: { data: [], count: 0 },
 };
 
 const crewSlice = createSlice({
@@ -33,7 +33,7 @@ const crewSlice = createSlice({
       .addCase(retrieveCrew.fulfilled, (state, action) => {
         state.loading = false;
         state.error = action.payload.error;
-        state.current = action.payload.current;
+        state.active = action.payload.active;
       })
       .addCase(retrieveCrew.rejected, (state) => {
         state.loading = false;

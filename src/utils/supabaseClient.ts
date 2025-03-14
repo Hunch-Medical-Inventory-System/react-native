@@ -171,26 +171,18 @@ class SupabaseController {
     const data: ExpirableEntityState<ExpirableTableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
-      personal: { data: [], count: 0 },
+      active: { data: [], count: 0 },
       expired: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         (query) =>
           query
-            .is("user_id", null)
+            .is("is_deleted", false)
             .gte("expiry_date", new Date().toISOString()),
-        columns
-      );
-
-      data.personal = await this.fetchTableData(
-        table,
-        options,
-        (query) => query.not("user_id", "is", null),
         columns
       );
 
@@ -236,11 +228,11 @@ class SupabaseController {
     const data: EntityState<DeletableTableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
+      active: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         () => {},
@@ -279,11 +271,11 @@ class SupabaseController {
     const data: EntityState<TableMapping[T]> = {
       loading: true,
       error: null,
-      current: { data: [], count: 0 },
+      active: { data: [], count: 0 },
     };
 
     try {
-      data.current = await this.fetchTableData(
+      data.active = await this.fetchTableData(
         table,
         options,
         () => {},
@@ -423,6 +415,30 @@ class SupabaseController {
       return true;
     } catch (error: any) {
       console.error(`Error deleting row in ${table}:`, error.message);
+      return false;
+    }
+  };
+
+  /**
+   * Sends a message to the Gemini function and returns the response data.
+   *
+   * @param {string} message - The message to be sent to the Gemini function.
+   * @returns {Promise<any>} - A promise that resolves to the response data from the Gemini function, or false if an error occurs.
+   * @throws {Error} - Throws an error if the invocation of the Gemini function fails.
+   */
+  public chatWithGemini = async (message: string): Promise<any> => {
+    try {
+      const { data, error } = await this.client.functions.invoke('gemini', {
+        body: { question: message },
+      })
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data.message;
+    } catch (error: any) {
+      console.error("Error invoking Gemini function:", error.message);
       return false;
     }
   };

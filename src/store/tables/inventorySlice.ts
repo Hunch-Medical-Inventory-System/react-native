@@ -5,8 +5,7 @@ import type { DataFetchOptions, ExpirableEntityState, InventoryData } from "@/ty
 const initialState: ExpirableEntityState<InventoryData> = {
   loading: true,
   error: null,
-  current: { data: [], count: 0 },
-  personal: { data: [], count: 0 },
+  active: { data: [], count: 0 },
   expired: { data: [], count: 0 },
 };
 
@@ -22,8 +21,7 @@ const inventorySlice = createSlice({
       .addCase(retrieveInventory.fulfilled, (state, action) => {
         state.loading = false;
         state.error = action.payload.error;
-        state.current = action.payload.current;
-        state.personal = action.payload.personal;
+        state.active = action.payload.active;
         state.expired = action.payload.expired;
       })
       .addCase(retrieveInventory.rejected, (state) => {

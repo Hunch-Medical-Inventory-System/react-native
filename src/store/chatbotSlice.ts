@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import superbaseController from "@/utils/supabaseClient";
 import type { Chat, ChatbotState } from "@/types/chatbot";
 
 type ChatData = {
@@ -17,17 +18,8 @@ export const chat = createAsyncThunk(
       response: "",
     }
     try {
-      const response = await fetch("http://localhost:5000/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({question:message}),
-      });
-      const result = await response.json();
-
-      if (result.error) data.error = result.error;
-      data.response = result.response;
+      const result = await superbaseController.chatWithGemini(message);
+      data.response = result;
     } catch (error: any) {
       data.error = error
       throw new Error(error as string);

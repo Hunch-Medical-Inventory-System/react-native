@@ -23,9 +23,9 @@ const Chatbot = () => {
 
     const [question, setQuestion] = useState('');
 
-    const askQuestion = () => {
+    const askQuestion = async () => {
         if (question.trim() === '') return;
-        dispatch(chat(question))
+        dispatch(chat(question));
         setQuestion('');
     };
 
