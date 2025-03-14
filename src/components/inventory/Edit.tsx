@@ -21,7 +21,7 @@ const EditData = ({ toggleModal, currentId }: Props) => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const inventoryData: InventoryData | undefined = useAppSelector((state) =>
-    state.inventory.current.data.find((item: InventoryData) => item.id === currentId)
+    state.inventory.active.data.find((item: InventoryData) => item.id === currentId)
   );
 
   const supplies: EntityState<SuppliesData> = useAppSelector((state) => state.supplies);
@@ -47,8 +47,8 @@ const EditData = ({ toggleModal, currentId }: Props) => {
     dispatch(retrieveSupplies({ itemsPerPage: 100, page: 1, keywords: '' }));
   }, [dispatch]);
 
-  const supplyOptions = supplies.current?.data
-    ? supplies.current.data.map((item: SuppliesData) => ({
+  const supplyOptions = supplies.active?.data
+    ? supplies.active.data.map((item: SuppliesData) => ({
         label: item.name,
         value: item.id.toString(),
       }))

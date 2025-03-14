@@ -6,8 +6,8 @@ import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
 import type { RootState, AppDispatch } from '@/store';
 import type { EntityState, ExpirableEntityState, InventoryData, SuppliesData } from '@/types/tables';
-import DateTimePicker from 'react-datetime-picker';
-import 'react-datetime-picker/dist/DateTimePicker.css'; // Import CSS for web
+// import DateTimePicker from 'react-datetime-picker';
+// import 'react-datetime-picker/dist/DateTimePicker.css'; // Import CSS for web
 
 const Expired = () => {
   const dispatch: AppDispatch = useAppDispatch();
@@ -71,7 +71,7 @@ const Expired = () => {
   };
 
   const renderRow = (item: InventoryData) => {
-    const supply = suppliesData.current?.data.find((supply) => supply.id === item.supply_id);
+    const supply = suppliesData.active?.data.find((supply) => supply.id === item.supply_id);
 
     return (
       <Card style={styles.card} key={item.id}>
@@ -160,7 +160,7 @@ const Expired = () => {
 
             {/* Expiry Date Input */}
             <Text style={styles.label}>Expiry Date</Text>
-            <DateTimePicker
+            {/* <DateTimePicker
               onChange={(value) => {
                 if (value) {
                   setExpiryDate(value); // Only update if value is not null
@@ -171,7 +171,7 @@ const Expired = () => {
               clearIcon={null} // Hide the clear icon
               calendarIcon={null} // Hide the calendar icon
               className="custom-date-picker" // Add custom styles for web
-            />
+            /> */}
 
             <View style={styles.modalButtons}>
               <Button mode="text" textColor="#A0A0B0" onPress={() => setEditModalVisible(false)}>Cancel</Button>

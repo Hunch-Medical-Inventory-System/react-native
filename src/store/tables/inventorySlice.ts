@@ -35,7 +35,7 @@ export const retrieveInventory = createAsyncThunk(
   "inventory/retrieveInventory",
   async (options: DataFetchOptions) => {
 
-    const data = await supabaseController.readExpirableDataFromTable("inventory", options);
+    const data = await supabaseController.readExpirableDataFromTable("inventory", options, ["id", "created_at", "quantity", "expiry_date", "supplies(name)"]);
     return data;
 
   }

@@ -10,7 +10,7 @@ import type {
 export const retrieveSupplies = createAsyncThunk(
   "supplies/retrieveSupplies",
   async (options: DataFetchOptions) => {
-    const data = await supabaseController.readDeletableDataFromTable("supplies", options);
+    const data = await supabaseController.readDataFromTable("supplies", options);
     return data;
   }
 );

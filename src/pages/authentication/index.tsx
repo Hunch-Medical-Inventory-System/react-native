@@ -10,6 +10,8 @@ type AuthPageProps = {
 const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,9 +38,11 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.client.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.client.auth.signInWithPassword({ email, password });
       if (error) throw error;
       onAuthSuccess();
+      if (!data?.user) return;
+      supabase.updateRowInTable('crew', data.user.id, { first_name: firstName, last_name: lastName });
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -113,6 +117,24 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
           onChangeText={setPassword}
           placeholder="Enter your password"
           secureTextEntry
+          style={{ marginBottom: 10, backgroundColor: '#292929' }}
+          theme={{ colors: { primary: '#E94560', text: '#fff' } }}
+        />
+
+        <TextInput
+          label="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="Enter your first name"
+          style={{ marginBottom: 10, backgroundColor: '#292929' }}
+          theme={{ colors: { primary: '#E94560', text: '#fff' } }}
+        />
+
+        <TextInput
+          label="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Enter your last name"
           style={{ marginBottom: 10, backgroundColor: '#292929' }}
           theme={{ colors: { primary: '#E94560', text: '#fff' } }}
         />
