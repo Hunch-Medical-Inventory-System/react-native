@@ -324,7 +324,7 @@ class SupabaseController {
     data: Partial<DeletableTableMapping[T]>
   ): Promise<boolean> => {
     try {
-      const response = await this.client.from(table).upsert(data).eq("id", id);
+      const response = await this.client.from(table).update(data).eq("id", id);
 
       if (response.error) {
         throw new Error(response.error.message);

@@ -38,11 +38,9 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.client.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.client.auth.signInWithPassword({ email, password });
       if (error) throw error;
       onAuthSuccess();
-      if (!data?.user) return;
-      supabase.updateRowInTable('crew', data.user.id, { first_name: firstName, last_name: lastName });
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -53,10 +51,21 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const handleSignup = async () => {
     setLoading(true);
     setError(null);
+
+    if (!email || !password || !firstName || !lastName) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
     try {
-      const { error } = await supabase.client.auth.signUp({ email, password });
+      const { data, error } = await supabase.client.auth.signUp({ email, password });
       if (error) throw error;
       onAuthSuccess();
+
+      if (!data.user?.id) throw new Error('User ID not found');
+      const success = await supabase.updateRowInTable('crew', data.user.id, { first_name: firstName, last_name: lastName });
+      if (!success) throw new Error('Failed to update user information');
+
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -120,6 +129,18 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
           style={{ marginBottom: 10, backgroundColor: '#292929' }}
           theme={{ colors: { primary: '#E94560', text: '#fff' } }}
         />
+
+        <Text
+          style={{
+            textAlign: 'center',
+            color: '#E94560',
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginBottom: 20,
+          }}
+        >
+          Sign Up Addition
+        </Text>
 
         <TextInput
           label="First Name"
