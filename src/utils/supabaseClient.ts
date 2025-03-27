@@ -28,26 +28,59 @@ class SupabaseController {
   public client: SupabaseClient;
   private static instance: SupabaseController | null = null;
   public isAuthenticated: boolean = false;
-  public userId: string | null = null;
+  public userId: User["id"] | null = null;
 
   constructor(apiKey: string, supabaseUrl: string) {
     this.client = createClient(apiKey as string, supabaseUrl as string);
-    this.checkSession();
-    this.getUserId();
+    this.checkSession().then((isAuthenticated) => {
+      if (isAuthenticated) {
+        this.getUserId();
+      }
+    });
   }
 
   private checkSession = async () => {
-    const {
-      data: { session },
-    } = await this.client.auth.getSession();
-    this.isAuthenticated = !!session; // Set authenticated based on session
+    const { data: { session } } = await this.client.auth.getSession();
+    this.isAuthenticated = !!session;
+    return this.isAuthenticated;
   };
 
-  private getUserId = async () => {
-    const {
-      data: { user },
-    } = await this.client.auth.getUser();
-    this.userId = user?.id ?? null;
+  private getUserId = async (): Promise<User["id"] | null> => {
+    try {
+      const { data: { session }, error: sessionError } = await this.client.auth.getSession();
+
+      if (sessionError) {
+        console.error("Error fetching session:", sessionError.message);
+        this.userId = null;
+        return null;
+      }
+
+      if (!session) {
+        console.warn("No active session found.");
+        this.userId = null;
+        return null;
+      }
+
+      const { data: { user }, error: userError } = await this.client.auth.getUser();
+
+      if (userError) {
+        console.error("Error fetching user:", userError.message);
+        this.userId = null;
+        return null;
+      }
+
+      this.userId = user ? user.id : null;
+      return this.userId;
+    } catch (error: any) {
+      console.error("Unexpected error fetching user:", error.message);
+      this.userId = null;
+      return null;
+    }
+  };
+
+  public reCheckAuth = async () => {
+    await this.checkSession();
+    await this.getUserId();
   };
 
   /**
@@ -284,18 +317,19 @@ class SupabaseController {
   ): Promise<number | string> => {
     // Promise will resolve to either number (id) or string (error message)
     try {
-      console.log("Data being inserted:", data);
-      const response = await this.client.from(table).insert(data).select(); // .select() to fetch inserted data
-
-      console.log("Insert response:", response);
+      const response = await this.client
+        .from(table)
+        .insert(data)
+        .select()
+        .single(); // .select() to fetch inserted data
 
       if (response.error) {
         throw new Error(response.error.message); // If there is an error, throw it
       }
 
       const insertedRecord = response.data
-        ? (response.data[0] as { id: number })
-        : null; // Get the first inserted record
+        ? (response.data as { id: number })
+        : null; // Get the inserted record
       if (!insertedRecord) {
         throw new Error("No data returned from insert operation");
       }
@@ -312,7 +346,6 @@ class SupabaseController {
    *
    * @template T - The type of the table, which must be a key of DeletableTableMapping.
    * @param {T} table - The name of the table to update.
-   * @param {number} id - The ID of the row to update.
    * @param {Partial<DeletableTableMapping[T]>} data - The data to update the row with.
    * @returns {Promise<boolean>} - A promise that resolves to true if the update was successful, or false if there was an error.
    *
@@ -320,11 +353,44 @@ class SupabaseController {
    */
   public updateRowInTable = async <T extends keyof DeletableTableMapping>(
     table: T,
-    id: number | string,
     data: Partial<DeletableTableMapping[T]>
   ): Promise<boolean> => {
     try {
-      const response = await this.client.from(table).update(data).eq("id", id);
+      const response = await this.client
+        .from(table)
+        .update(data)
+        .eq("id", data.id);
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error(`Error updating row in ${table}:`, error.message);
+      return false;
+    }
+  };
+
+  /**
+   * Upserts a row in the specified table with the given data.
+   *
+   * @template T - The type of the table, which must be a key of DeletableTableMapping.
+   * @param {T} table - The name of the table to upsert.
+   * @param {Partial<DeletableTableMapping[T]>} data - The data to upsert the row with.
+   * @returns {Promise<boolean>} - A promise that resolves to true if the upsert was successful, or false if there was an error.
+   *
+   * @throws {Error} - Throws an error if the upsert operation fails.
+   */
+  public upsertRowInTable = async <T extends keyof DeletableTableMapping>(
+    table: T,
+    data: Partial<DeletableTableMapping[T]>
+  ): Promise<boolean> => {
+    try {
+      const response = await this.client
+        .from(table)
+        .upsert(data)
+        .eq("id", data.id);
 
       if (response.error) {
         throw new Error(response.error.message);
@@ -354,7 +420,7 @@ class SupabaseController {
     try {
       const response = await this.client
         .from(table)
-        .upsert({ is_deleted: true })
+        .update({ is_deleted: true })
         .eq("id", id);
 
       if (response.error) {
@@ -369,32 +435,32 @@ class SupabaseController {
   };
 
   /**
-   * Claims a row in the specified table by updating the `user_id` field with the current user's ID.
-   *
-   * @template T - The type of the table, which extends the keys of `ExpirableTableMapping`.
-   * @param {T} table - The name of the table to update.
-   * @param {number} id - The ID of the row to claim.
-   * @returns {Promise<boolean>} - A promise that resolves to `true` if the row was successfully claimed, or `false` if an error occurred.
-   * @throws {Error} - Throws an error if the upsert operation fails.
+   * Calls the `take_inventory` RPC function, which updates the quantity of an inventory item.
+   * @param quantityDiff The difference to apply to the quantity of the inventory item.
+   * @param inventoryId The ID of the inventory item to update.
+   * @returns `true` if the RPC call was successful, `false` if an error occurred.
+   * @throws An error if the RPC call fails.
    */
-  public claimRowInTable = async <T extends keyof ExpirableTableMapping>(
-    table: T,
-    id: number
+  public takeInventory = async (
+    quantityDiff: number,
+    inventoryId: number,
   ): Promise<boolean> => {
     try {
-      const response = await this.client
-        .from(table)
-        .upsert({ user_id: this.userId })
-        .eq("id", id);
+      // console.log("quantityDiff", quantityDiff, "inventoryId", inventoryId, "userId", await this.getUserId());
 
-      if (response.error) {
-        throw new Error(response.error.message);
+      const { data, error } = await this.client.rpc("take_inventory", {
+        p_inventory_id: inventoryId,
+        p_quantity: quantityDiff,
+        p_user_id: await this.getUserId(),
+      });
+
+      if (error || !data) {
+        throw new Error(error?.message ?? "Unknown error");
       }
 
       return true;
-    } catch (error: any) {
-      console.error(`Error deleting row in ${table}:`, error.message);
-      return false;
+    } catch (error) {
+      throw error;
     }
   };
 

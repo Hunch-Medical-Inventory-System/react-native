@@ -30,6 +30,7 @@ import supabase from '@/utils/supabaseClient'; // Import Supabase client
 import AuthPage from "@/pages/authentication"; // Import AuthPage
 
 import { StatusBar } from 'react-native';
+import supabaseController from "@/utils/supabaseClient";
 
 // Inside your App component (or in your useEffect)
 
@@ -53,6 +54,7 @@ const App = () => {
 
     const { data: authListener } = supabase.client.auth.onAuthStateChange((_event, session) => {
       setIsAuthenticated(!!session); // Update authentication state when session changes
+      supabaseController.reCheckAuth();
     });
 
     return () => {
@@ -61,7 +63,6 @@ const App = () => {
   }, []);
 
   const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
   };
 
   return (

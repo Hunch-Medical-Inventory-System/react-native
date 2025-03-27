@@ -2,6 +2,11 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import supabaseController from "@/utils/supabaseClient";
 import type { DataFetchOptions, ExpirableEntityState, InventoryData } from "@/types/tables";
 
+type fetchDataOptions = {
+  ids: number[];
+  columns?: string[];
+}
+
 const initialState: ExpirableEntityState<InventoryData> = {
   loading: true,
   error: null,
@@ -43,8 +48,9 @@ export const retrieveInventory = createAsyncThunk(
 
 export const fetchInventoryData = createAsyncThunk(
   "inventory/fetchData",
-  async (ids: number[]) => {
-    const data = await supabaseController.readRowsFromTable<"inventory">("inventory", "id", ids); // Replace "inventory" with your actual table name
+  async (options: fetchDataOptions) => {
+    const { ids, columns = ["*"] } = options;
+    const data = await supabaseController.readRowsFromTable<"inventory">("inventory", "id", ids, columns ); // Replace "inventory" with your actual table name
     if (!data) {
       throw new Error("Inventory data not found");
     }
@@ -89,7 +95,7 @@ export const updateInventory = createAsyncThunk<
   async ({ id, data }, { rejectWithValue }) => {
     try {
       // Call the update function from supabaseClient
-      const result = await supabaseController.updateRowInTable("inventory", id, data);
+      const result = await supabaseController.updateRowInTable("inventory", data);
       if (!result) {
         throw new Error("Failed to update the inventory data.");
       }
@@ -101,10 +107,39 @@ export const updateInventory = createAsyncThunk<
   }
 );
 
+export const takeInventory = createAsyncThunk(
+  'inventory/takeInventory',
+  async ({ itemId, quantityTaken }: { itemId: number; quantityTaken: number }): Promise<boolean> => {
+    try {
+
+      const success = await supabaseController.takeInventory(quantityTaken, itemId);
+
+      if (!success) {
+        throw new Error("Failed to update the inventory data.");
+      }
+
+      return success;
+
+    } catch (error: any) {
+      console.error("Error taking inventory:", error.message);
+      return false;
+    }
+  }
+);
+
 export const deleteInventory = createAsyncThunk(
   'inventory/deleteInventory',
   async (itemId: number, { dispatch }) => {
-    // API call to delete the item
+    try {
+      const success = await supabaseController.deleteRowInTable("inventory", (itemId));
+      if (!success) {
+        throw new Error("Failed to delete the inventory data.");
+      }
+      return success;
+    } catch (error: any) {
+      console.error("Error deleting inventory:", error.message);
+      return false;
+    }
   }
 );
 

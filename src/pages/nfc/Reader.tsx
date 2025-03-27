@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { Modal, Button, Text, Surface } from 'react-native-paper';
 import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 import Edit from '@/components/inventory/Edit';
+import Increment from '@/components/inventory/Increment';
 
 // Initialize NFC
 NfcManager.start();
@@ -11,10 +12,12 @@ const Reader = () => {
   const [id, setId] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [isIncrementOpen, setIsIncrementOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [isNfcSupported, setIsNfcSupported] = useState(false);
 
-  const toggleModal = () => setVisible((oldValue) => !oldValue);
+  const toggleIncrement = () => setIsIncrementOpen((oldValue) => !oldValue);
+  const toggleEdit = () => setIsEditOpen((oldValue) => !oldValue);
 
   // Check if NFC is supported
   useEffect(() => {
@@ -63,7 +66,7 @@ const Reader = () => {
 
         if (!isNaN(idFromTag)) {
           setId(idFromTag); // Set the ID from the NFC tag
-          setVisible(true);
+          setIsIncrementOpen(true);
         } else {
           throw new Error('Invalid tag data');
         }
@@ -101,13 +104,19 @@ const Reader = () => {
 
       {error && <Text style={{ marginTop: 20, color: 'red' }}>{error}</Text>}
 
-      <Button mode="contained" onPress={toggleModal} disabled={!id}>
-        Show Last Item Details
+      <Button mode="contained" onPress={toggleIncrement} disabled={!id}>
+        Change Last Item Details
       </Button>
-      <Modal visible={visible} onDismiss={toggleModal} contentContainerStyle={{ padding: 20, margin: 20, borderRadius: 10 }}>
+      <Modal visible={isIncrementOpen} onDismiss={toggleIncrement} contentContainerStyle={{ padding: 20, margin: 20, borderRadius: 10 }}>
         <Surface style={{ padding: 20, borderRadius: 10, gap: 10 }}>
-          <Edit toggleModal={toggleModal} currentId={id} />
-          <Button onPress={toggleModal}>Close</Button>
+          <Increment toggleModal={toggleIncrement} currentId={id} />
+          <Button onPress={toggleIncrement}>Close</Button>
+        </Surface>
+      </Modal>
+      <Modal visible={isEditOpen} onDismiss={toggleEdit} contentContainerStyle={{ padding: 20, margin: 20, borderRadius: 10 }}>
+        <Surface style={{ padding: 20, borderRadius: 10, gap: 10 }}>
+          <Edit toggleModal={toggleEdit} currentId={id} />
+          <Button onPress={toggleEdit}>Close</Button>
         </Surface>
       </Modal>
     </Surface>

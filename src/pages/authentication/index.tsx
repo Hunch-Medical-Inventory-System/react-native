@@ -63,7 +63,7 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
       onAuthSuccess();
 
       if (!data.user?.id) throw new Error('User ID not found');
-      const success = await supabase.updateRowInTable('crew', data.user.id, { first_name: firstName, last_name: lastName });
+      const success = await supabase.updateRowInTable('crew', { id: data.user.id, first_name: firstName, last_name: lastName });
       if (!success) throw new Error('Failed to update user information');
 
     } catch (error: any) {
@@ -194,6 +194,39 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         >
           Sign Up
         </Button>
+
+        <Surface>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Demo
+          </Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Email: test@example.com
+          </Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Password: password
+          </Text>
+        </Surface>
       </Animated.View>
     </Surface>
   );

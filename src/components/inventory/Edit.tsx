@@ -28,7 +28,7 @@ const EditData = ({ toggleModal, currentId }: Props) => {
 
   useEffect(() => {
     if (!inventoryData) {
-      dispatch(fetchInventoryData([currentId]))
+      dispatch(fetchInventoryData({ids: [currentId]}))
         .unwrap()
         .then((fetchedData: Partial<InventoryData>[]) => {
           if (fetchedData.length > 0) {
