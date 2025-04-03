@@ -2,7 +2,6 @@ import { configureStore } from "@reduxjs/toolkit";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
 import inventoryReducer from "@/store/tables/inventorySlice";
 import suppliesReducer from "@/store/tables/suppliesSlice";
-import crewReducer from "@/store/tables/crewSlice";
 import logsReducer from "@/store/tables/logsSlice";
 import chatbotReducer from "@/store/chatbotSlice";
 
@@ -10,7 +9,6 @@ export const store = configureStore({
   reducer: {
     inventory: inventoryReducer,
     supplies: suppliesReducer,
-    crew: crewReducer,
     logs: logsReducer,
     chatbot: chatbotReducer,
   },

@@ -1,18 +1,21 @@
+import type { User } from "@supabase/supabase-js";
+
 export type DataFetchOptions = {
   itemsPerPage: number;
   page: number;
   keywords: string;
 };
 
+export type PersonalTableMapping = {
+  logs: LogsData
+}
 export type ExpirableTableMapping = {
   inventory: InventoryData;
 };
 export type DeletableTableMapping = {
   supplies: SuppliesData;
-  logs: LogsData;
-} & ExpirableTableMapping;
-export type TableMapping = {
-} & DeletableTableMapping;
+  crew: CrewData;
+} & ExpirableTableMapping & PersonalTableMapping;
 
 export type EntityState<T> = {
   loading: boolean;
@@ -40,17 +43,34 @@ export type SuppliesData = {
 };
 export type InventoryData = {
   id: number;
-  supply_id: SuppliesData["id"];
+  created_at: string;
   quantity: number;
   expiry_date?: string;
+  supply_id?: SuppliesData["id"];
+  supplies?: Partial<SuppliesData>;
+} & (
+  | { supply_id: SuppliesData["id"]; supplies?: never }
+  | { supply_id?: never; supplies: Partial<SuppliesData> }
+);
+export type CrewData = {
+  id: User["id"];
   created_at: string;
-  is_deleted: boolean;
+  first_name: string;
+  last_name: string;
 };
 export type LogsData = {
   id: number;
   created_at: string;
-  inventory_id: InventoryData["id"];
-  user_id: string;
+  inventory_id?: InventoryData["id"];
+  inventory?: Partial<InventoryData>;
+  user_id?: CrewData["id"];
+  crew?: Partial<CrewData>;
   quantity: number;
   is_deleted: boolean;
-};
+} & (
+  | { inventory_id: InventoryData["id"]; inventory?: never }
+  | { inventory_id?: never; inventory: Partial<InventoryData> }
+) & (
+  | { user_id: CrewData["id"]; crew?: never }
+  | { user_id?: never; crew: Partial<CrewData> }
+);
