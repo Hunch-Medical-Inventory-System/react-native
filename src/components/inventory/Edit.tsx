@@ -3,7 +3,7 @@ import { View, Platform, useColorScheme } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Dropdown } from 'react-native-paper-dropdown';
-import { updateInventory, fetchInventoryData } from '@/store/tables/inventorySlice';
+import { updateInventory, fetchInventoryData, deleteInventory } from '@/store/tables/inventorySlice';
 import { useAppDispatch, useAppSelector } from '@/store/';
 import type { InventoryData, SuppliesData, EntityState } from '@/types/tables';
 import { retrieveSupplies } from '@/store/tables/suppliesSlice';
@@ -21,14 +21,14 @@ const EditData = ({ toggleModal, currentId }: Props) => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const inventoryData: InventoryData | undefined = useAppSelector((state) =>
-    state.inventory.current.data.find((item: InventoryData) => item.id === currentId)
+    state.inventory.active.data.find((item: InventoryData) => item.id === currentId)
   );
 
   const supplies: EntityState<SuppliesData> = useAppSelector((state) => state.supplies);
 
   useEffect(() => {
     if (!inventoryData) {
-      dispatch(fetchInventoryData([currentId]))
+      dispatch(fetchInventoryData({ids: [currentId]}))
         .unwrap()
         .then((fetchedData: Partial<InventoryData>[]) => {
           if (fetchedData.length > 0) {
@@ -47,8 +47,8 @@ const EditData = ({ toggleModal, currentId }: Props) => {
     dispatch(retrieveSupplies({ itemsPerPage: 100, page: 1, keywords: '' }));
   }, [dispatch]);
 
-  const supplyOptions = supplies.current?.data
-    ? supplies.current.data.map((item: SuppliesData) => ({
+  const supplyOptions = supplies.active?.data
+    ? supplies.active.data.map((item: SuppliesData) => ({
         label: item.name,
         value: item.id.toString(),
       }))
@@ -100,6 +100,25 @@ const EditData = ({ toggleModal, currentId }: Props) => {
       });
   };
 
+  const handleDelete = () => {
+    try {
+      dispatch(deleteInventory(currentId))
+        .unwrap()
+        .then(() => {
+          console.log("Delete successful!");
+          toggleModal();
+        })
+        .catch((err) => {
+          console.error("Error deleting inventory:", err);
+          setError('Error deleting inventory: ' + err);
+        });
+    } catch (err) {
+      console.error("Error deleting inventory:", err);
+      setError('Error deleting inventory: ' + err);
+    } finally {
+    }
+  };
+
 
   return (
     <View style={{ padding: 20, gap: 10 }}>
@@ -141,6 +160,10 @@ const EditData = ({ toggleModal, currentId }: Props) => {
           {/* Save Changes */}
           <Button mode="contained" onPress={handleSave} disabled={!formData}>
             Save Changes
+          </Button>
+          {/* Delete Item */}
+          <Button mode="contained" onPress={handleDelete} buttonColor="red">
+            Delete Item
           </Button>
         </>
       ) : (

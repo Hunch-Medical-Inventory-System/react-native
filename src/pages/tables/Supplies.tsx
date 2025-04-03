@@ -67,7 +67,7 @@ const SuppliesTable = () => {
           <DataTable.Title textStyle={styles.headerText}>Created</DataTable.Title>
         </DataTable.Header>
 
-        {data.current.data.map((item) => (
+        {data.active.data.map((item) => (
           <DataTable.Row key={item.id} style={styles.tableRow}>
             <DataTable.Cell textStyle={styles.cellText}>{item.id}</DataTable.Cell>
             <DataTable.Cell textStyle={styles.cellText}>{item.type}</DataTable.Cell>

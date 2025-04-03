@@ -25,10 +25,9 @@ const Writer = () => {
   const toggleModal = () => setVisible(oldValue => !oldValue);
 
   const dispatch: AppDispatch = useAppDispatch();
-  const { current, loading, error: inventoryError } = useSelector(
+  const { active, loading, error: inventoryError } = useSelector(
     (state: RootState) => state.inventory
   );
-
 
   const fetchInventory = () => {
     dispatch(retrieveInventory({
@@ -94,8 +93,6 @@ const Writer = () => {
   };
 
   // Check if NFC is supported and enabled on the device
-
-
   useEffect(() => {
       const checkNfcSupport = async () => {
         try {
@@ -148,7 +145,7 @@ const Writer = () => {
         onPress={toggleModal}
         style={{ marginTop: 20, width: '80%' }}
       >
-        Edit Data
+        Edit *New* Item Data
       </Button>
 
       {/* Dropdown to select existing data to rewrite in case of tag damage*/}
@@ -156,9 +153,9 @@ const Writer = () => {
         <Dropdown
           label="Select Data"
           placeholder="Select Data"
-          value={current.data.find((item: InventoryData) => item.id === nfcData)?.id?.toString() ?? ''}
+          value={active.data.find((item: InventoryData) => item.id === nfcData)?.id?.toString() ?? ''}
           onSelect={(value?: string) => setNfcData(value ? Number(value) : 0)}
-          options={current.data.map((item: InventoryData) => ({ label: item.id ? item.id.toString() : '', value: item.id ? item.id.toString() : '' }))}
+          options={active.data.map((item: InventoryData) => ({ label: `${item.supplies?.name} (${item.id})`, value: item.id.toString() }))}
           />
       </Surface>
 

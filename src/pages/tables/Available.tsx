@@ -6,13 +6,12 @@ import { useAppDispatch } from '@/store';
 import { retrieveInventory } from '@/store/tables/inventorySlice';
 import { retrieveSupplies } from '@/store/tables/suppliesSlice';
 import type { RootState, AppDispatch } from '@/store';
-import type { InventoryData, SuppliesData, EntityState, ExpirableEntityState } from '@/types/tables';
+import type { InventoryData, ExpirableEntityState } from '@/types/tables';
 
 const InventoryProfile = () => {
 
   const dispatch: AppDispatch = useAppDispatch();
   const inventory: ExpirableEntityState<InventoryData> = useSelector((state: RootState) => state.inventory);
-  const supplies: EntityState<SuppliesData> = useSelector((state: RootState) => state.supplies);
 
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [page, setPage] = useState(1);
@@ -48,7 +47,7 @@ const InventoryProfile = () => {
     return (
       <Card style={[styles.card, expiryStyle]}>
         <Card.Content style={styles.cardContent}>
-          <Title style={styles.cardTitle}>{supplies.current.data.find((supply) => supply.id === item.supply_id)?.name}</Title>
+          <Title style={styles.cardTitle}>{item.supplies?.name}: {item.id}</Title>
           <Paragraph style={styles.cardText}>Quantity: {item.quantity}</Paragraph>
           <Paragraph style={styles.cardText}>Added: {new Date(item.created_at).toLocaleDateString()}</Paragraph>
           <Paragraph style={styles.cardText}>Expiry: {item.expiry_date ? new Date(item.expiry_date).toLocaleDateString() : 'N/A'}</Paragraph>
@@ -78,7 +77,7 @@ const InventoryProfile = () => {
           <ActivityIndicator animating={true} size="large" style={styles.loader} />
         ) : (
           <FlatList
-            data={inventory.current.data}
+            data={inventory.active.data}
             renderItem={renderRow}
             keyExtractor={(item) => item.id!.toString()}
             numColumns={2}

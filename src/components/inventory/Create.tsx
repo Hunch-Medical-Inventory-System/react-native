@@ -28,8 +28,8 @@ const Create = ({ toggleModal, setId }: CreateProps) => {
 
   const supplyValue = formData.supply_id ? formData.supply_id.toString() : '';
 
-  const supplyOptions = supplies.current?.data
-    ? supplies.current.data.map((item: SuppliesData) => ({
+  const supplyOptions = supplies.active?.data
+    ? supplies.active.data.map((item: SuppliesData) => ({
         label: item.name,
         value: item.id.toString(),
       }))
