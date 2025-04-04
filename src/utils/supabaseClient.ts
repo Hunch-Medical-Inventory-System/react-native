@@ -478,20 +478,23 @@ class SupabaseController {
    */
   public chatWithGemini = async (message: string): Promise<any> => {
     try {
+      console.log("message", message)
       const { data, error } = await this.client.functions.invoke("gemini", {
+        method: "POST",  // ✅ Ensure method is explicitly set
         body: { question: message },
       });
-
+  
       if (error) {
         throw new Error(error.message);
       }
-
-      return data.message;
+  
+      return data?.message || data; // ✅ Ensure correct response handling
     } catch (error: any) {
       console.error("Error invoking Gemini function:", error.message);
       return false;
     }
   };
+  
 
   /**
    * Returns a singleton instance of the SupabaseController class.
