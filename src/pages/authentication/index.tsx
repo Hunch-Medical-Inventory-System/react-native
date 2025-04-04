@@ -10,6 +10,8 @@ type AuthPageProps = {
 const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,10 +51,21 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
   const handleSignup = async () => {
     setLoading(true);
     setError(null);
+
+    if (!email || !password || !firstName || !lastName) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
     try {
-      const { error } = await supabase.client.auth.signUp({ email, password });
+      const { data, error } = await supabase.client.auth.signUp({ email, password });
       if (error) throw error;
       onAuthSuccess();
+
+      if (!data.user?.id) throw new Error('User ID not found');
+      const success = await supabase.updateRowInTable('crew', { id: data.user.id, first_name: firstName, last_name: lastName });
+      if (!success) throw new Error('Failed to update user information');
+
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -117,6 +130,36 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
           theme={{ colors: { primary: '#E94560', text: '#fff' } }}
         />
 
+        <Text
+          style={{
+            textAlign: 'center',
+            color: '#E94560',
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginBottom: 20,
+          }}
+        >
+          Sign Up Addition
+        </Text>
+
+        <TextInput
+          label="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="Enter your first name"
+          style={{ marginBottom: 10, backgroundColor: '#292929' }}
+          theme={{ colors: { primary: '#E94560', text: '#fff' } }}
+        />
+
+        <TextInput
+          label="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Enter your last name"
+          style={{ marginBottom: 10, backgroundColor: '#292929' }}
+          theme={{ colors: { primary: '#E94560', text: '#fff' } }}
+        />
+
         {error && (
           <Text style={{ color: '#ff4d4d', textAlign: 'center', fontSize: 14, marginBottom: 10 }}>
             {error}
@@ -151,6 +194,39 @@ const AuthPage = ({ onAuthSuccess }: AuthPageProps) => {
         >
           Sign Up
         </Button>
+
+        <Surface>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Demo
+          </Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Email: test@example.com
+          </Text>
+          <Text
+            style={{
+              textAlign: 'center',
+              color: '#E94560',
+              fontSize: 14,
+              marginTop: 10,
+            }}
+          >
+            Password: password
+          </Text>
+        </Surface>
       </Animated.View>
     </Surface>
   );

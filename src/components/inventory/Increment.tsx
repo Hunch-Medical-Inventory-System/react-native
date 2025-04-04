@@ -60,8 +60,6 @@ const EditData = ({ toggleModal, currentId }: Props) => {
         <>
           {/* Supply Dropdown */}
           <Text>{ name } - { currentId }</Text>
-          
-          <Text>test</Text>
 
           {/* Quantity */}
           <TextInput
